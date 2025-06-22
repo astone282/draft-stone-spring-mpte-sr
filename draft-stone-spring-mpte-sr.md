@@ -10,7 +10,7 @@ date: {DATE}
 consensus: true
 v: 3
 area: "Routing"
-workgroup: "SPRING Working Group"
+workgroup: "Source Packet Routing in Networking"
 
 author:
  -
@@ -73,7 +73,7 @@ The document assumes the reader is familiar with {{RFC8402}}, {{RFC9256}}, and {
 
 It's important to recognize the SR Policy information model supports multiple SID lists, effectively encoding multiple unique paths on a tunnel at the ingress.
 A Directed Acyclic Graph (DAG) can be represented as a collection of individual paths, each of which can be programmed as a separate SID list within an SR Policy Candidate Path.
-However, depending on the graph topology, the number of unique paths to encode can grow significantly. Additionally, in traditional SID list approaches, hashing is performed only 
+However, depending on the graph topology, the number of unique paths to encode can grow significantly. Additionally, in traditional SID list approaches, hashing is performed only
 at the ingress, rather than at each downstream node. In contrast, a DAG-based mechanism may allow better traffic distribution or localized tuning based on localized weight changes.
 Finally, the maximum segment depth (MSD) may need to be considered for long paths that deviate significantly from the shortest path.
 
@@ -89,7 +89,7 @@ This document proposes the below concepts for applying MPTE in an SR environment
 
 ## MPTED
 
-The MPTED is managed by a centralized controller, such as a PCE acting as the MC. Topology discovery is performed using BGP-LS {{RFC7752}}, while transport control plane signaling 
+The MPTED is managed by a centralized controller, such as a PCE acting as the MC. Topology discovery is performed using BGP-LS {{RFC7752}}, while transport control plane signaling
 is achieved through controller-oriented protocols such as PCEP {{RFC5440}}, {{RFC8231}} and BGP/BGP-LS {{I-D.draft-ietf-idr-segment-routing-te-policy}}, {{I-D.draft-ietf-idr-bgp-ls-sr-policy}}.
 The MC computes, manages, and distributes all forwarding information to the nodes participating in the MPTE DAG, which form the MPTED.
 
@@ -125,10 +125,10 @@ uses the same, single Junction Segment value which is a Binding Segment.
 {{I-D.draft-kompella-teas-mpte}} specifies that an MPTE Tunnel could have multiple ingress and/or multiple egress nodes. Currently, the SR Policy architecture defines an SR Policy using a {Headend, Endpoint, Color} tuple,
 where the Endpoint may be set to the null value (0.0.0.0), indicating multiple destinations.
 
-For controller-initiated tunnels, the intended ingress and egress node(s) can be provided to the controller based on implementation-specific methods. These may be signaled to the network as 
+For controller-initiated tunnels, the intended ingress and egress node(s) can be provided to the controller based on implementation-specific methods. These may be signaled to the network as
 multiple tunnels to support multi-ingress scenarios. Each tunnel MAY use a null Endpoint value to support multi-egress.
 
-However, MPTE SR Policies that are originated or defined by network devices are typically limited to a single ingress and a single egress endpoint unless protocols such as PCEP or NETCONF are extended 
+However, MPTE SR Policies that are originated or defined by network devices are typically limited to a single ingress and a single egress endpoint unless protocols such as PCEP or NETCONF are extended
 to encode additional intended destination node(s) for controller-based path computation. Extensions to the SR Policy architecture may be needed to support signaling of multiple intended destinations for path computation.
 
 Support for network-originated or device-defined MPTE SR Policies with multiple ingress nodes is currently out of scope.
@@ -272,7 +272,7 @@ the DAG are not notified with any Junction segments.
 As described in {{I-D.draft-kompella-teas-mpte}}, as there are multiple egress interfaces (SID Lists), the loss of an interface link does not result in traffic drops
 as long as one egress interface (SID List) remains, although congestion may occur.
 
-Link protection from an upstream Junction node to its downstream Junction nodes can be achieved using existing TI-LFA {{I-D.draft-ietf-rtgwg-segment-routing-ti-lfa}} mechanisms, 
+Link protection from an upstream Junction node to its downstream Junction nodes can be achieved using existing TI-LFA {{I-D.draft-ietf-rtgwg-segment-routing-ti-lfa}} mechanisms,
 applied per egress SID List. Since the top SID(s) in each SID List identify the path to the next downstream Junction node, TI-LFA is applicable.
 
 Local computation for node protection on an upstream Junction node is not feasible, because it lacks visibility into the DAG beyond the immediate downstream Junction node as it only knows the next Junction Segment.
@@ -336,7 +336,7 @@ Additionally, the SR path between two Junction nodes whether directly or indirec
 existing protocol mechanisms to update the forwarding instructions of the Junction Segment.
 
 Multiple candidate paths can be used to facilitate local optimization. However, care must be taken regarding how the MPTED version is encoded and how version increments are signaled.
-Specifically, if the MPTED version is encoded in the color attribute or another attribute of the SR Policy, rather than within the Candidate Path itself, multiple Candidate Paths 
+Specifically, if the MPTED version is encoded in the color attribute or another attribute of the SR Policy, rather than within the Candidate Path itself, multiple Candidate Paths
 SHOULD NOT be used when an operation requires incrementing the MPTED version to maintain consistency.
 
 The implications of MPTED version encoding and management will be further addressed in future versions of this document.
@@ -345,9 +345,9 @@ The implications of MPTED version encoding and management will be further addres
 
 Reoptimizing the DAG requires potentially redeploying all new Junction Segments network wide in a coordinated, make before break manner.
 
-Since the DAG MID and version are encoded in the color field of an SR Policy, globally optimizing a DAG with make-before-break considerations requires 
-deploying new Junction segments as SR Policies with unique color values to all Junction nodes of the new DAG. After all of the new Junction segments are deployed, 
-the ingress node can be updated with new SID lists which utilize the new DAG Junction segments of its's neighbors. 
+Since the DAG MID and version are encoded in the color field of an SR Policy, globally optimizing a DAG with make-before-break considerations requires
+deploying new Junction segments as SR Policies with unique color values to all Junction nodes of the new DAG. After all of the new Junction segments are deployed,
+the ingress node can be updated with new SID lists which utilize the new DAG Junction segments of its's neighbors.
 
 TODO This section needs further discussion.
 
