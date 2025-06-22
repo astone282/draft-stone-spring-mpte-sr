@@ -3,7 +3,7 @@ title: "Multipath Traffic Engineering for Segment Routing"
 abbrev: "spring-mpte-sr"
 category: std
 
-docname: draft-stone-spring-mpte-sr
+docname: draft-stone-spring-mpte-sr-latest
 submissiontype: IETF
 number:
 date: {DATE}
