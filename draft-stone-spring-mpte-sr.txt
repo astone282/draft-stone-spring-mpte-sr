@@ -2,7 +2,7 @@
 
 
 
-SPRING Working Group                                            A. Stone
+Source Packet Routing in Networking                             A. Stone
 Internet-Draft                                                     Nokia
 Intended status: Standards Track                            V. P. Beeram
 Expires: 24 December 2025                               Juniper Networks
@@ -10,12 +10,23 @@ Expires: 24 December 2025                               Juniper Networks
 
 
            Multipath Traffic Engineering for Segment Routing
-                       draft-stone-spring-mpte-sr
+                   draft-stone-spring-mpte-sr-latest
 
 Abstract
 
    This document describes a mechanism to achieve Multipath Traffic
    Engineering for Segment Routing based networks.
+
+Discussion Venues
+
+   This note is to be removed before publishing as an RFC.
+
+   Discussion of this document takes place on the Source Packet Routing
+   in Networking Working Group mailing list (spring@ietf.org), which is
+   archived at https://mailarchive.ietf.org/arch/browse/spring/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/astone282/draft-stone-spring-mpte-sr.
 
 Status of This Memo
 

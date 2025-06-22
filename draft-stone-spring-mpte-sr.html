@@ -11,7 +11,7 @@
        This document describes a mechanism to achieve Multipath Traffic Engineering for Segment Routing based networks. 
     " name="description">
 <meta content="xml2rfc 3.29.0" name="generator">
-<meta content="draft-stone-spring-mpte-sr" name="ietf.draft">
+<meta content="draft-stone-spring-mpte-sr-latest" name="ietf.draft">
 <!-- Generator version information:
   xml2rfc 3.29.0
     Python 3.12.11
@@ -1056,9 +1056,9 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <div id="internal-metadata" class="document-information">
 <dl id="identifiers">
 <dt class="label-workgroup">Workgroup:</dt>
-<dd class="workgroup">SPRING Working Group</dd>
+<dd class="workgroup">Source Packet Routing in Networking</dd>
 <dt class="label-internet-draft">Internet-Draft:</dt>
-<dd class="internet-draft">draft-stone-spring-mpte-sr</dd>
+<dd class="internet-draft">draft-stone-spring-mpte-sr-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
 <time datetime="2025-06-22" class="published">22 June 2025</time>
@@ -1084,6 +1084,17 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
 <p id="section-abstract-1">This document describes a mechanism to achieve Multipath Traffic Engineering for Segment Routing based networks.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+</section>
+<section class="note rfcEditorRemove" id="section-note.1">
+      <h2 id="name-discussion-venues">
+<a href="#name-discussion-venues" class="section-name selfRef">Discussion Venues</a>
+      </h2>
+<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+<p id="section-note.1-2">Discussion of this document takes place on the
+    Source Packet Routing in Networking Working Group mailing list (spring@ietf.org),
+    which is archived at <span><a href="https://mailarchive.ietf.org/arch/browse/spring/">https://mailarchive.ietf.org/arch/browse/spring/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">Source for this draft and an issue tracker can be found at
+    <span><a href="https://github.com/astone282/draft-stone-spring-mpte-sr">https://github.com/astone282/draft-stone-spring-mpte-sr</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
 </section>
 <div id="status-of-memo">
 <section id="section-boilerplate.1">
@@ -1277,7 +1288,7 @@ appear in all capitals, as shown here.<a href="#section-1.1-1" class="pilcrow">�
       </h2>
 <p id="section-3-1">It's important to recognize the SR Policy information model supports multiple SID lists, effectively encoding multiple unique paths on a tunnel at the ingress.
 A Directed Acyclic Graph (DAG) can be represented as a collection of individual paths, each of which can be programmed as a separate SID list within an SR Policy Candidate Path.
-However, depending on the graph topology, the number of unique paths to encode can grow significantly. Additionally, in traditional SID list approaches, hashing is performed only 
+However, depending on the graph topology, the number of unique paths to encode can grow significantly. Additionally, in traditional SID list approaches, hashing is performed only
 at the ingress, rather than at each downstream node. In contrast, a DAG-based mechanism may allow better traffic distribution or localized tuning based on localized weight changes.
 Finally, the maximum segment depth (MSD) may need to be considered for long paths that deviate significantly from the shortest path.<a href="#section-3-1" class="pilcrow">¶</a></p>
 <p id="section-3-2">In comparison, encoding a DAG’s forwarding instructions across the participating Junction nodes reduces the number of individual SID lists at the ingress,
@@ -1297,7 +1308,7 @@ there is a trade-off between the volume and length of SID lists versus distribut
         <h3 id="name-mpted">
 <a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-mpted" class="section-name selfRef">MPTED</a>
         </h3>
-<p id="section-4.1-1">The MPTED is managed by a centralized controller, such as a PCE acting as the MC. Topology discovery is performed using BGP-LS <span>[<a href="#RFC7752" class="cite xref">RFC7752</a>]</span>, while transport control plane signaling 
+<p id="section-4.1-1">The MPTED is managed by a centralized controller, such as a PCE acting as the MC. Topology discovery is performed using BGP-LS <span>[<a href="#RFC7752" class="cite xref">RFC7752</a>]</span>, while transport control plane signaling
 is achieved through controller-oriented protocols such as PCEP <span>[<a href="#RFC5440" class="cite xref">RFC5440</a>]</span>, <span>[<a href="#RFC8231" class="cite xref">RFC8231</a>]</span> and BGP/BGP-LS <span>[<a href="#I-D.draft-ietf-idr-segment-routing-te-policy" class="cite xref">I-D.draft-ietf-idr-segment-routing-te-policy</a>]</span>, <span>[<a href="#I-D.draft-ietf-idr-bgp-ls-sr-policy" class="cite xref">I-D.draft-ietf-idr-bgp-ls-sr-policy</a>]</span>.
 The MC computes, manages, and distributes all forwarding information to the nodes participating in the MPTE DAG, which form the MPTED.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
 <p id="section-4.1-2"><span>[<a href="#I-D.draft-kompella-teas-mpte" class="cite xref">I-D.draft-kompella-teas-mpte</a>]</span> specifies that a node in the MPTED is identified by its IPv6 loopback address. However, this document allows the use of a 32-bit dotted quad router ID as an alternative.
@@ -1333,9 +1344,9 @@ uses the same, single Junction Segment value which is a Binding Segment.<a href=
         </h3>
 <p id="section-4.3-1"><span>[<a href="#I-D.draft-kompella-teas-mpte" class="cite xref">I-D.draft-kompella-teas-mpte</a>]</span> specifies that an MPTE Tunnel could have multiple ingress and/or multiple egress nodes. Currently, the SR Policy architecture defines an SR Policy using a {Headend, Endpoint, Color} tuple,
 where the Endpoint may be set to the null value (0.0.0.0), indicating multiple destinations.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
-<p id="section-4.3-2">For controller-initiated tunnels, the intended ingress and egress node(s) can be provided to the controller based on implementation-specific methods. These may be signaled to the network as 
+<p id="section-4.3-2">For controller-initiated tunnels, the intended ingress and egress node(s) can be provided to the controller based on implementation-specific methods. These may be signaled to the network as
 multiple tunnels to support multi-ingress scenarios. Each tunnel <span class="bcp14">MAY</span> use a null Endpoint value to support multi-egress.<a href="#section-4.3-2" class="pilcrow">¶</a></p>
-<p id="section-4.3-3">However, MPTE SR Policies that are originated or defined by network devices are typically limited to a single ingress and a single egress endpoint unless protocols such as PCEP or NETCONF are extended 
+<p id="section-4.3-3">However, MPTE SR Policies that are originated or defined by network devices are typically limited to a single ingress and a single egress endpoint unless protocols such as PCEP or NETCONF are extended
 to encode additional intended destination node(s) for controller-based path computation. Extensions to the SR Policy architecture may be needed to support signaling of multiple intended destinations for path computation.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
 <p id="section-4.3-4">Support for network-originated or device-defined MPTE SR Policies with multiple ingress nodes is currently out of scope.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
 </section>
@@ -1499,7 +1510,7 @@ the DAG are not notified with any Junction segments.<a href="#section-7-1" class
       </h2>
 <p id="section-8-1">As described in <span>[<a href="#I-D.draft-kompella-teas-mpte" class="cite xref">I-D.draft-kompella-teas-mpte</a>]</span>, as there are multiple egress interfaces (SID Lists), the loss of an interface link does not result in traffic drops
 as long as one egress interface (SID List) remains, although congestion may occur.<a href="#section-8-1" class="pilcrow">¶</a></p>
-<p id="section-8-2">Link protection from an upstream Junction node to its downstream Junction nodes can be achieved using existing TI-LFA <span>[<a href="#I-D.draft-ietf-rtgwg-segment-routing-ti-lfa" class="cite xref">I-D.draft-ietf-rtgwg-segment-routing-ti-lfa</a>]</span> mechanisms, 
+<p id="section-8-2">Link protection from an upstream Junction node to its downstream Junction nodes can be achieved using existing TI-LFA <span>[<a href="#I-D.draft-ietf-rtgwg-segment-routing-ti-lfa" class="cite xref">I-D.draft-ietf-rtgwg-segment-routing-ti-lfa</a>]</span> mechanisms,
 applied per egress SID List. Since the top SID(s) in each SID List identify the path to the next downstream Junction node, TI-LFA is applicable.<a href="#section-8-2" class="pilcrow">¶</a></p>
 <p id="section-8-3">Local computation for node protection on an upstream Junction node is not feasible, because it lacks visibility into the DAG beyond the immediate downstream Junction node as it only knows the next Junction Segment.
 A controller <span class="bcp14">MAY</span> be used to precompute backup SR Paths and signal these backup SID Lists to the upstream Junction segments.<a href="#section-8-3" class="pilcrow">¶</a></p>
@@ -1578,7 +1589,7 @@ the neighboring Junction node on the broadcast link. The outgoing SID List of th
 Additionally, the SR path between two Junction nodes whether directly or indirectly connected may also be updated. The controller utilizes
 existing protocol mechanisms to update the forwarding instructions of the Junction Segment.<a href="#section-9.4-1" class="pilcrow">¶</a></p>
 <p id="section-9.4-2">Multiple candidate paths can be used to facilitate local optimization. However, care must be taken regarding how the MPTED version is encoded and how version increments are signaled.
-Specifically, if the MPTED version is encoded in the color attribute or another attribute of the SR Policy, rather than within the Candidate Path itself, multiple Candidate Paths 
+Specifically, if the MPTED version is encoded in the color attribute or another attribute of the SR Policy, rather than within the Candidate Path itself, multiple Candidate Paths
 <span class="bcp14">SHOULD NOT</span> be used when an operation requires incrementing the MPTED version to maintain consistency.<a href="#section-9.4-2" class="pilcrow">¶</a></p>
 <p id="section-9.4-3">The implications of MPTED version encoding and management will be further addressed in future versions of this document.<a href="#section-9.4-3" class="pilcrow">¶</a></p>
 </section>
@@ -1589,8 +1600,8 @@ Specifically, if the MPTED version is encoded in the color attribute or another 
 <a href="#section-9.5" class="section-number selfRef">9.5. </a><a href="#name-global-optimization" class="section-name selfRef">Global optimization</a>
         </h3>
 <p id="section-9.5-1">Reoptimizing the DAG requires potentially redeploying all new Junction Segments network wide in a coordinated, make before break manner.<a href="#section-9.5-1" class="pilcrow">¶</a></p>
-<p id="section-9.5-2">Since the DAG MID and version are encoded in the color field of an SR Policy, globally optimizing a DAG with make-before-break considerations requires 
-deploying new Junction segments as SR Policies with unique color values to all Junction nodes of the new DAG. After all of the new Junction segments are deployed, 
+<p id="section-9.5-2">Since the DAG MID and version are encoded in the color field of an SR Policy, globally optimizing a DAG with make-before-break considerations requires
+deploying new Junction segments as SR Policies with unique color values to all Junction nodes of the new DAG. After all of the new Junction segments are deployed,
 the ingress node can be updated with new SID lists which utilize the new DAG Junction segments of its's neighbors.<a href="#section-9.5-2" class="pilcrow">¶</a></p>
 <p id="section-9.5-3">TODO This section needs further discussion.<a href="#section-9.5-3" class="pilcrow">¶</a></p>
 <p id="section-9.5-4">TODO<a href="#section-9.5-4" class="pilcrow">¶</a></p>
