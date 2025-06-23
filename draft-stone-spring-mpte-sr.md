@@ -257,14 +257,14 @@ Ingress SR Policy (Ingress only):
 
 # Load-balancing
 
-When a packet with the BSID assigned to the Junction Segment is received at its ingress, the node performs weighted ECMP forwarding among all egress SID lists associated with the SR Policy
+When a packet with the BSID assigned to the Junction Segment is received at its ingress, the node performs weighted ECMP forwarding among all egress SID lists associated with the SR Policy.
 
 It is worth noting that {{I-D.draft-kompella-teas-mpte}} introduces the concepts of both unequal weight balancing and 0 weight to omit forwarding out of an egress interface while maintaining the instruction signaling.
-These capabilities are not supported in the current SR Policy model and may be considered in future updates to this document or the SR Policy architecture
+The 0 weight capability is not supported in the current SR Policy model and may be considered in future updates to this document.
 
 # Constraints
 
-When the controller computes the DAG, traffic engineering constraints or intends MUST be considered. Links which violate the constraints as pruned from the DAG. Nodes which do not form
+When the controller computes the DAG, traffic engineering constraints MUST be considered. Links which violate the constraints are pruned from the DAG. Nodes which do not form
 the DAG are not notified with any Junction segments.
 
 # Protection
