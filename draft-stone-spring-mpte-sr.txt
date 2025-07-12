@@ -5,8 +5,8 @@
 Source Packet Routing in Networking                             A. Stone
 Internet-Draft                                                     Nokia
 Intended status: Standards Track                            V. P. Beeram
-Expires: 25 December 2025                               Juniper Networks
-                                                            23 June 2025
+Expires: 13 January 2026                                Juniper Networks
+                                                            12 July 2025
 
 
            Multipath Traffic Engineering for Segment Routing
@@ -43,7 +43,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 25 December 2025.
+   This Internet-Draft will expire on 13 January 2026.
 
 Copyright Notice
 
@@ -596,9 +596,9 @@ Ingress SR Policy (Using Junction Segments):
    [I-D.draft-kompella-teas-mpte]
               Kompella, K., Jalil, L., Khaddam, M., and A. Smith,
               "Multipath Traffic Engineering", Work in Progress,
-              Internet-Draft, draft-kompella-teas-mpte-00, 3 March 2025,
+              Internet-Draft, draft-kompella-teas-mpte-01, 7 July 2025,
               <https://datatracker.ietf.org/doc/html/draft-kompella-
-              teas-mpte-00>.
+              teas-mpte-01>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
