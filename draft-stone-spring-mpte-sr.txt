@@ -5,8 +5,8 @@
 Source Packet Routing in Networking                             A. Stone
 Internet-Draft                                                     Nokia
 Intended status: Standards Track                            V. P. Beeram
-Expires: 13 January 2026                                Juniper Networks
-                                                            12 July 2025
+Expires: 24 January 2026                                Juniper Networks
+                                                            23 July 2025
 
 
            Multipath Traffic Engineering for Segment Routing
@@ -43,7 +43,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 January 2026.
+   This Internet-Draft will expire on 24 January 2026.
 
 Copyright Notice
 
