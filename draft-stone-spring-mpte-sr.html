@@ -7,23 +7,25 @@
 <title>Multipath Traffic Engineering for Segment Routing</title>
 <meta content="Andrew Stone" name="author">
 <meta content="Vishnu Pavan Beeram" name="author">
+<meta content="Nick Buraglio" name="author">
+<meta content="Shaofu Peng" name="author">
 <meta content="
        This document describes a mechanism to achieve Multipath Traffic Engineering for Segment Routing based networks. 
     " name="description">
-<meta content="xml2rfc 3.30.0" name="generator">
+<meta content="xml2rfc 3.30.2" name="generator">
 <meta content="draft-stone-spring-mpte-sr-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.30.0
+  xml2rfc 3.30.2
     Python 3.12.11
     ConfigArgParse 1.7
     google-i18n-address 3.1.1
     intervaltree 3.1.0
     Jinja2 3.1.6
     lxml 5.3.1
-    platformdirs 4.3.8
+    platformdirs 4.4.0
     pycountry 24.6.1
     PyYAML 6.0.2
-    requests 2.32.4
+    requests 2.32.5
     setuptools 80.9.0
     wcwidth 0.2.13
 -->
@@ -1044,11 +1046,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">spring-mpte-sr</td>
-<td class="right">July 2025</td>
+<td class="right">September 2025</td>
 </tr></thead>
 <tfoot><tr>
-<td class="left">Stone &amp; Beeram</td>
-<td class="center">Expires 24 January 2026</td>
+<td class="left">Stone, et al.</td>
+<td class="center">Expires 28 March 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1061,12 +1063,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-stone-spring-mpte-sr-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-07-23" class="published">23 July 2025</time>
+<time datetime="2025-09-24" class="published">24 September 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-01-24">24 January 2026</time></dd>
+<dd class="expires"><time datetime="2026-03-28">28 March 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1076,6 +1078,14 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <div class="author">
       <div class="author-name">V. P. Beeram</div>
 <div class="org">Juniper Networks</div>
+</div>
+<div class="author">
+      <div class="author-name">N. Buraglio</div>
+<div class="org">Energy Sciences Network</div>
+</div>
+<div class="author">
+      <div class="author-name">S. Peng</div>
+<div class="org">ZTE Corporation</div>
 </div>
 </dd>
 </dl>
@@ -1115,7 +1125,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 24 January 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 28 March 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1324,17 +1334,21 @@ This value represents the headend address of a node participating in the DAG.<a 
 <p id="section-4.2-1">The concept of a Junction Segment is introduced to describe the signaling and forwarding behavior of a Junction node in an SR network.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
 <p id="section-4.2-2">It’s worth noting that the architectural use of a Junction Segment is analogous to a Replication Segment <span>[<a href="#RFC9524" class="cite xref">RFC9524</a>]</span>, but it performs forwarding based on load balancing rather than replication.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
 <p id="section-4.2-3">A Junction Segment is installed on nodes identified as Junction Nodes, as defined in <span>[<a href="#I-D.draft-kompella-teas-mpte" class="cite xref">I-D.draft-kompella-teas-mpte</a>]</span>.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
-<p id="section-4.2-4">This document version proposes that a Junction Segment is realized using the existing SR Policy construct with a single Candidate Path.
-Future document versions may evolve the Junction segment into its own explicit segment type as opposed to leveraging the existing SR Policy constructs.
-A Binding Segment is attached to an SR Policy Candidate Path with one or more SID Lists. OIF instruction signaling is achieved via segment lists, where the top SID identifies the outgoing interface(s).<a href="#section-4.2-4" class="pilcrow">¶</a></p>
-<p id="section-4.2-5">Since a Junction Segment may egress to multiple downstream nodes, the endpoint of the corresponding SR Policy <span class="bcp14">MUST</span> be set to the null value (0.0.0.0).
-Therefore, a Junction segment is identified by its &lt;headend, color&gt; attribute. This document currently assumes that the color value be encoded with both the MID and version.
-However, further updates may include additional encoding of these independent values in the SR Policy model.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
-<p id="section-4.2-6">Since SR-based networks support specifying multiple egress interfaces using adjacency-SID sets and Node SIDs,
+<p id="section-4.2-4">This document version proposes that a Junction Segment is realized using the existing SR Policy construct with a single Candidate Path and a Binding SID.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+<p id="section-4.2-5">A Binding Segment is attached to an SR Policy Candidate Path with one or more SID Lists. OIF instruction signaling is achieved via segment lists, where the top SID identifies the outgoing interface(s).<a href="#section-4.2-5" class="pilcrow">¶</a></p>
+<p id="section-4.2-6">Since a Junction Segment may egress to multiple downstream nodes, the endpoint of the corresponding SR Policy <span class="bcp14">MUST</span> be set to the null value (0.0.0.0).
+Therefore, a Junction segment is identified by its &lt;headend, color&gt; attribute. This document currently assumes that the color value be encoded with both the MID and version.<a href="#section-4.2-6" class="pilcrow">¶</a></p>
+<p id="section-4.2-7">A DAG can consist of multiple Junction Segments intended for a single MPTE tunnel (which is an SR Policy on an ingress). Additionally, a Junction Segment may be reused by multiple SR Policies if the subgraph it forwards over completely overlaps
+all the SR Policies using it, including all of their respective egress nodes.<a href="#section-4.2-7" class="pilcrow">¶</a></p>
+<p id="section-4.2-8">It is <span class="bcp14">RECOMMENDED</span> the color value is globally consistent amongst all Junction Segments which are a member of a single DAG instance or for a given DAG intent.
+To facilitate globalized make-before-break of the DAG for a set of ingress SR Policy(ies), the color value of the Junction Segments which provide forwarding for a DAG <span class="bcp14">MAY</span> be a different value than ingress SR Policies which are
+members of the DAG.<a href="#section-4.2-8" class="pilcrow">¶</a></p>
+<p id="section-4.2-9">The controller maintains and tracks the meaningful intent of the color value(s) amongst all ingress SR Policy and Junction Segments for the DAG. See Section 9.5 for more discussion.<a href="#section-4.2-9" class="pilcrow">¶</a></p>
+<p id="section-4.2-10">Since SR-based networks support specifying multiple egress interfaces using adjacency-SID sets and Node SIDs,
 the Junction Segment <span class="bcp14">MAY</span> include a SID list entry that identifies multiple outgoing interfaces. In addition to egress interfaces,
 <span>[<a href="#I-D.draft-kompella-teas-mpte" class="cite xref">I-D.draft-kompella-teas-mpte</a>]</span> describes signaling ingress interfaces. The use of a Junction Segment omits the need for per-interface
 ingress signaling as a single Binding Segment attached to an SR Policy is used. All upstream originated traffic sent to a downstream Junction Node
-uses the same, single Junction Segment value which is a Binding Segment.<a href="#section-4.2-6" class="pilcrow">¶</a></p>
+uses the same, single Junction Segment value which is a Binding Segment.<a href="#section-4.2-10" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="mpte-sr-policy-tunnel-with-multiple-ingressegress">
@@ -1360,7 +1374,7 @@ to encode additional intended destination node(s) for controller-based path comp
       </h2>
 <p id="section-5-1">A path computation request or tunnel delegation notification is sent to the controller, specifying one or more ingress and egress nodes, along with constraints.
 This request may originate from an ingress router in the network or be provisioned directly via an API to the controller.
-This tunnel computation request or delegation pertains to an instance of an MPTED, which is assigned an identifier and a version.<a href="#section-5-1" class="pilcrow">¶</a></p>
+This tunnel computation request or delegation pertains to an instance of an MPTE Tunnel achieved with the ingress SR Policy..<a href="#section-5-1" class="pilcrow">¶</a></p>
 <p id="section-5-2">The controller computes the DAG for ingress and all egress endpoints to determine all Junction nodes in the DAG to be used for the tunnel.<a href="#section-5-2" class="pilcrow">¶</a></p>
 <p id="section-5-3">The controller signals the Junction Segment to all downstream nodes, starting with the penultimate egress hop node(s) and
 working upwards toward the ingress nodes.<a href="#section-5-3" class="pilcrow">¶</a></p>
@@ -1368,7 +1382,8 @@ working upwards toward the ingress nodes.<a href="#section-5-3" class="pilcrow">
 The optional use of an MPTED Reflector is protocol specific. For example, PCEP sessions terminate on each
 and every Junction node in the topology and BGP may do the same or make use of a BGP Route Reflector.
 A BSID <span class="bcp14">MUST</span> be explicitly requested or signaled to the Junction node for assignment. If the controller opts for local node assigned value, it <span class="bcp14">MUST</span> wait to signal
-upstream Junction nodes about their Junction segments in their outgoing SID lists.<a href="#section-5-4" class="pilcrow">¶</a></p>
+upstream Junction nodes about their Junction segments in their outgoing SID lists. The BSID value <span class="bcp14">MAY</span> be a constant value globally, if assigned by PCE/Controller,
+or may be a different value on each Junction Node whether it’s assigned by PCE/Controller or the local Junction Node itself.<a href="#section-5-4" class="pilcrow">¶</a></p>
 <p id="section-5-5">Each SR Policy contains one or more SID lists. These SID lists must
 include at least two segment identifiers: one SID for forwarding to the downstream Junction node and one for the Junction Segment value (BSID) of the downstream node.
 For directly connected neighbors, this may be the adjacency or node SID for the neighbor. For Junction nodes that are not directly connected,
@@ -1415,11 +1430,10 @@ The figure presents the bi-directional link weights for an arbitrary metric (IGP
             <p id="section-5.1-6.1.1">When the DAG is computed, loops cannot exist. Therefore, in the above topology the links in direction {C, B} and {C,D} and {C,F} and {C,G} are chosen in the DAG.<a href="#section-5.1-6.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-6.2">
-            <p id="section-5.1-6.2.1">The path along {B,E,H} can be represented by a single Node SID. A Junction on node E is not required.<a href="#section-5.1-6.2.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-6.2.1">The path along {B,E,H} can be represented by a single Node SID. A Junction on node E is not required. Junction Segment B may also be omitted (as per Section 8 below) but is utilized here for example purposes.<a href="#section-5.1-6.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-6.3">
-            <p id="section-5.1-6.3.1">Junction F is described below, but an optimization could be performed to exclude Junction F as it only has one egress link. A generalized mechanism to optimize
-the DAG distribution could omit Junction segments if the Junction segment contains only one egress SID list.<a href="#section-5.1-6.3.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-6.3.1">Junction F is described below, but an optimization could be performed to exclude Junction F as it only has one egress link (see Section 8 below).<a href="#section-5.1-6.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-6.4">
             <p id="section-5.1-6.4.1">In practice the Binding Segments <span class="bcp14">MAY</span> be all the same value. This example describes different BSID values for readability.<a href="#section-5.1-6.4.1" class="pilcrow">¶</a></p>
@@ -1427,22 +1441,29 @@ the DAG distribution could omit Junction segments if the Junction segment contai
           <li class="normal" id="section-5.1-6.5">
             <p id="section-5.1-6.5.1">Weights of each egress SID list is also currently omitted.<a href="#section-5.1-6.5.1" class="pilcrow">¶</a></p>
 </li>
+          <li class="normal" id="section-5.1-6.6">
+            <p id="section-5.1-6.6.1">The color on the ingress SR Policy still provides intent steering for ingress traffic, therefore <span class="bcp14">MAY</span> be unique to the color value of the Junction segments comprising of the DAG due permit globalized make-before-break behavior.<a href="#section-5.1-6.6.1" class="pilcrow">¶</a></p>
+</li>
         </ul>
 <div class="alignLeft art-text artwork" id="section-5.1-7">
 <pre>
 Junction Segment B:
+  Color: 100
   BSID: BSID-B
   SID List 1: [Node-SID-H]
 
 Junction Segment F:
+  Color: 100
   BSID: BSID-F
   SID List 1: [Adj-SID-FH]
 
 Junction Segment G:
+  Color: 100
   BSID: BSID-G
   SID List 1: [Adj-SID-GH]
 
 Junction Segment C:
+  Color: 100
   BSID: BSID-C
   SID List 1: [Adj-SID-CB, BSID-B]
   SID List 2: [Adj-SID-CF, BSID-F]
@@ -1450,6 +1471,7 @@ Junction Segment C:
   SID List 4: [Node-SID-D, BSID-D]
 
 Junction Segment D:
+  Color: 100
   BSID: BSID-D
   SID List 2: [Adj-SID-DF, BSID-F]
   SID List 3: [Adj-SID-DG, BSID-G]
@@ -1457,6 +1479,7 @@ Junction Segment D:
 Then lastly, at ingress the SR Policy transport tunnel is configured with the following:
 
 Ingress SR Policy (Using Junction Segments):
+  Color: 50
   Candidate Path 1:
     SID List 1: [Adj-SID-AB, BSID-B]
     SID List 2: [Adj-SID-AC, BSID-C]
@@ -1469,6 +1492,7 @@ Note, some of the below could be compressed with a Node SID(s) but listed with a
 <div class="alignLeft art-text artwork" id="section-5.1-9">
 <pre>
 Ingress SR Policy (Ingress only):
+  Color: 50
   Candidate Path 1:
     SID List 1: [Adj-SID-AC, Adj-SID-CF, Adj-SID-FH]
     SID List 2: [Adj-SID-AC, Node-SID-D, Adj-SID-DG, Adj-SID-GH]
@@ -1489,9 +1513,11 @@ Ingress SR Policy (Ingress only):
       <h2 id="name-load-balancing">
 <a href="#section-6" class="section-number selfRef">6. </a><a href="#name-load-balancing" class="section-name selfRef">Load-balancing</a>
       </h2>
-<p id="section-6-1">When a packet with the BSID assigned to the Junction Segment is received at its ingress, the node performs weighted ECMP forwarding among all egress SID lists associated with the SR Policy.<a href="#section-6-1" class="pilcrow">¶</a></p>
-<p id="section-6-2">It is worth noting that <span>[<a href="#I-D.draft-kompella-teas-mpte" class="cite xref">I-D.draft-kompella-teas-mpte</a>]</span> introduces the concepts of both unequal weight balancing and 0 weight to omit forwarding out of an egress interface while maintaining the instruction signaling.
-The 0 weight capability is not supported in the current SR Policy model and may be considered in future updates to this document.<a href="#section-6-2" class="pilcrow">¶</a></p>
+<p id="section-6-1">When a packet with the BSID assigned to the Junction Segment is received at its Junction Node,
+the node performs weighted ECMP (Equal-Cost Multi-Path) flow-based forwarding across all egress SID lists associated with the Junction Segment.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<p id="section-6-2">As per <span>[<a href="#RFC9256" class="cite xref">RFC9256</a>]</span> section 2.11, The fraction of the flows associated with a given segment list is w/Sw, where w is the weight of the segment
+list and Sw is the sum of the weights of the segment lists. To exclude forwarding via a specific egress interface
+while preserving the forwarding structure, a weight value of zero is assigned to the corresponding segment list.<a href="#section-6-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="constraints">
@@ -1508,14 +1534,22 @@ the DAG are not notified with any Junction segments.<a href="#section-7-1" class
       <h2 id="name-protection">
 <a href="#section-8" class="section-number selfRef">8. </a><a href="#name-protection" class="section-name selfRef">Protection</a>
       </h2>
-<p id="section-8-1">As described in <span>[<a href="#I-D.draft-kompella-teas-mpte" class="cite xref">I-D.draft-kompella-teas-mpte</a>]</span>, as there are multiple egress interfaces (SID Lists), the loss of an interface link does not result in traffic drops
-as long as one egress interface (SID List) remains, although congestion may occur.<a href="#section-8-1" class="pilcrow">¶</a></p>
-<p id="section-8-2">Link protection from an upstream Junction node to its downstream Junction nodes can be achieved using existing TI-LFA <span>[<a href="#I-D.draft-ietf-rtgwg-segment-routing-ti-lfa" class="cite xref">I-D.draft-ietf-rtgwg-segment-routing-ti-lfa</a>]</span> mechanisms,
-applied per egress SID List. Since the top SID(s) in each SID List identify the path to the next downstream Junction node, TI-LFA is applicable.<a href="#section-8-2" class="pilcrow">¶</a></p>
-<p id="section-8-3">Local computation for node protection on an upstream Junction node is not feasible, because it lacks visibility into the DAG beyond the immediate downstream Junction node as it only knows the next Junction Segment.
-A controller <span class="bcp14">MAY</span> be used to precompute backup SR Paths and signal these backup SID Lists to the upstream Junction segments.<a href="#section-8-3" class="pilcrow">¶</a></p>
-<p id="section-8-4">In a situation where a downstream Junction node experiences system or connectivity failure, the upstream Junction node will begin to blackhole the traffic until a notification can be sent to upstream nodes to remove
-the Junction node from the DAG.<a href="#section-8-4" class="pilcrow">¶</a></p>
+<p id="section-8-1">As described in <span>[<a href="#I-D.draft-kompella-teas-mpte" class="cite xref">I-D.draft-kompella-teas-mpte</a>]</span>, as there are multiple egress interfaces (SID Lists), the loss of one interface link does not result in traffic drops,
+as long as one egress interface (SID List) remains although congestion may occur. For example, in Figure 1 Node C can
+tolerate the lost of up to 3 egress links and traffic will still forward (potentially with congestion).<a href="#section-8-1" class="pilcrow">¶</a></p>
+<p id="section-8-2">If a Junction Node experiences a failure of all egress links (including any protection for those links), it will initially
+blackhole traffic until upstream nodes are notified by the controller to remove the failed Junction node from the DAG.<a href="#section-8-2" class="pilcrow">¶</a></p>
+<p id="section-8-3">To reduce the risk of outages caused by single link failure, the controller <span class="bcp14">MAY</span> optimize DAG deployment by assigning
+Junction Segments only to nodes with more than one egress segment list. In other words, if a node in the DAG has only one egress interface,
+it functions solely as a transit node for an upstream Junction Segment and does not receive a Junction Segment itself.
+For example, in Figure 1, Node E is omitted from receiving a Junction Segment as it only has 1 egress link.<a href="#section-8-3" class="pilcrow">¶</a></p>
+<p id="section-8-4">Link protection from an upstream Junction node to its downstream Junction nodes can be achieved using existing TI-LFA <span>[<a href="#I-D.draft-ietf-rtgwg-segment-routing-ti-lfa" class="cite xref">I-D.draft-ietf-rtgwg-segment-routing-ti-lfa</a>]</span> mechanisms,
+applied per egress SID List on each Junction Segment. Since the top SID(s) in each SID List identify the path to the
+next downstream Junction node, TI-LFA is applicable. Effectively, TI-LFA is used to protect traffic between Junction Segments along a path
+within the DAG and is not intended to protect traffic directed toward the DAG’s egress nodes or the entire DAG.<a href="#section-8-4" class="pilcrow">¶</a></p>
+<p id="section-8-5">Local computation for node protection on an upstream Junction node is not feasible, because it lacks visibility into the
+DAG beyond the immediate downstream Junction node as it only knows the next Junction Segment.
+A controller <span class="bcp14">MAY</span> be used to precompute backup SR Paths and signal these backup SID Lists to the upstream Junction segments.<a href="#section-8-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="other-considerations">
@@ -1531,9 +1565,12 @@ the Junction node from the DAG.<a href="#section-8-4" class="pilcrow">¶</a></p>
 <p id="section-9.1-1">The use of Junction Segments to achieve a DAG can be used in hierarchical organization and sharing of DAGs between end-to-end tunnels.<a href="#section-9.1-1" class="pilcrow">¶</a></p>
 <p id="section-9.1-2">For instance, in a multi-area or multi-instance topology, one or more shared DAGs may be created per area, connecting the border ingress node(s) and egress node(s).
 These DAGs can then be stitched together for use in an end-to-end SR tunnel.<a href="#section-9.1-2" class="pilcrow">¶</a></p>
-<p id="section-9.1-3">Figure 2 is an example of two independent SR Policy Tunnels from Headend A and Headend B terminating on Egress X. An instance of a DAG with MID 100 can be configured between
-ABR-1 and the Egress X node. ABR-1 Junction Segment which ingresses the DAG has a Binding Segment attached, for example BSID-100. Therefore, the SID list on Headend A and Headend B SID lists would contain
-the SR Path (ex: Node-SID-ABR-1) to reach ABR 1 followed by BSID-100. The instruction set from each Headend to ABR 1 could also be another instance of a DAG, either for independent use or shared.<a href="#section-9.1-3" class="pilcrow">¶</a></p>
+<p id="section-9.1-3">Figure 2 is an example of two independent SR Policy Tunnels from Headend A and Headend B terminating on Egress X.
+An instance of a DAG with MID 100 can be configured between
+ABR-1 and the Egress X node. ABR-1 Junction Segment which ingresses the DAG has a Binding Segment attached, for
+example BSID-100. Therefore, the SID list on Headend A and Headend B SID lists would contain
+the SR Path (ex: Node-SID-ABR-1) to reach ABR 1 followed by BSID-100. The instruction set from each Headend to ABR 1
+could also be another instance of a DAG, either for independent use or shared.<a href="#section-9.1-3" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-9.1-4">
 <pre>
           -------------------------------------------------------------
@@ -1567,7 +1604,8 @@ the SR Path (ex: Node-SID-ABR-1) to reach ABR 1 followed by BSID-100. The instru
 <a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-directly-connected-junction" class="section-name selfRef">Directly connected Junction nodes</a>
         </h3>
 <p id="section-9.2-1">As described in the Operational section, all transit nodes in a DAG <span class="bcp14">MAY</span> be signaled with a Junction Segment.
-Alternatively depending on the topological graph and TE requirements, two Junction segments may be interconnected via an SR Path, with a SID list, where the SR Path itself may
+Alternatively depending on the topological graph and TE requirements, two Junction segments may be interconnected via an
+SR Path, with a SID list, where the SR Path itself may
 correspond to an ECMP or TE Path.<a href="#section-9.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1576,8 +1614,10 @@ correspond to an ECMP or TE Path.<a href="#section-9.2-1" class="pilcrow">¶</a>
         <h3 id="name-broadcast-links">
 <a href="#section-9.3" class="section-number selfRef">9.3. </a><a href="#name-broadcast-links" class="section-name selfRef">Broadcast links</a>
         </h3>
-<p id="section-9.3-1">SR networks abstract broadcast links with the use point to point adjacency segments identifying each neighbor. Specifying a DAG which contains a broadcast link is feasible as an adjcency segment can be used to identify
-the neighboring Junction node on the broadcast link. The outgoing SID List of the Junction Segment simply contains the adjacency SID of the next-hop neighbor on the broadcast link.<a href="#section-9.3-1" class="pilcrow">¶</a></p>
+<p id="section-9.3-1">SR networks abstract broadcast links with the use point to point adjacency segments identifying each neighbor. Specifying a DAG which
+contains a broadcast link is feasible as an adjacency segment can be used to identify
+the neighboring Junction node on the broadcast link. The outgoing SID List of the Junction Segment simply contains the adjacency SID
+of the next-hop neighbor on the broadcast link.<a href="#section-9.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="local-optimization">
@@ -1585,13 +1625,20 @@ the neighboring Junction node on the broadcast link. The outgoing SID List of th
         <h3 id="name-local-optimization">
 <a href="#section-9.4" class="section-number selfRef">9.4. </a><a href="#name-local-optimization" class="section-name selfRef">Local optimization</a>
         </h3>
-<p id="section-9.4-1">An individual Junction Segment can be optimized by adding new SID lists for downstream neighbors in the DAG or removing downstream nodes.
-Additionally, the SR path between two Junction nodes whether directly or indirectly connected may also be updated. The controller utilizes
-existing protocol mechanisms to update the forwarding instructions of the Junction Segment.<a href="#section-9.4-1" class="pilcrow">¶</a></p>
-<p id="section-9.4-2">Multiple candidate paths can be used to facilitate local optimization. However, care must be taken regarding how the MPTED version is encoded and how version increments are signaled.
-Specifically, if the MPTED version is encoded in the color attribute or another attribute of the SR Policy, rather than within the Candidate Path itself, multiple Candidate Paths
-<span class="bcp14">SHOULD NOT</span> be used when an operation requires incrementing the MPTED version to maintain consistency.<a href="#section-9.4-2" class="pilcrow">¶</a></p>
-<p id="section-9.4-3">The implications of MPTED version encoding and management will be further addressed in future versions of this document.<a href="#section-9.4-3" class="pilcrow">¶</a></p>
+<p id="section-9.4-1">An individual Junction Segment can be locally optimized by adding new SID lists for additional downstream neighbors in the DAG
+or by removing existing downstream nodes. Additionally, the SR path between two Junction Nodes—whether directly or indirectly connected—may also be updated.<a href="#section-9.4-1" class="pilcrow">¶</a></p>
+<p id="section-9.4-2">Since a Junction Segment is realized via an SR Policy, the controller leverages existing protocol mechanisms to update its forwarding
+instructions, as the Junction Segment itself is represented as a candidate path within the SR Policy. When updating an existing candidate path,
+the binding SID <span class="bcp14">MUST NOT</span> change, as doing so would cause traffic using that binding SID to drop until upstream consumers are updated.
+Such a change should instead be treated as a global optimization, not a local one.<a href="#section-9.4-2" class="pilcrow">¶</a></p>
+<p id="section-9.4-3">Multiple candidate paths could be used to support more comprehensive local optimizations. However, caution is required in how the MPTED version
+is encoded and how version increments are signaled, since candidate paths are signaled within the context of the SR Policy.<a href="#section-9.4-3" class="pilcrow">¶</a></p>
+<p id="section-9.4-4">If the same color value is reused and a new candidate path is deployed, the new candidate path will not be installed in the forwarding plane
+until the existing one is removed, as only one candidate path may be active per SR Policy. This operation may not be hitless, depending on hardware implementation.<a href="#section-9.4-4" class="pilcrow">¶</a></p>
+<p id="section-9.4-5">Alternatively, if a different color value is used, the new candidate path may be allowed to go active. However, it will still fail to do so since it should be using
+the same binding SID as the existing candidate path. This results in a collision, rendering the new path ineligible, and may also violate
+protocol constraints that prohibit such configurations.<a href="#section-9.4-5" class="pilcrow">¶</a></p>
+<p id="section-9.4-6">Therefore, it is <span class="bcp14">RECOMMENDED</span> that local optimization be performed by updating the SID list of the existing candidate path, rather than introducing new candidate paths.<a href="#section-9.4-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="global-optimization">
@@ -1599,12 +1646,38 @@ Specifically, if the MPTED version is encoded in the color attribute or another 
         <h3 id="name-global-optimization">
 <a href="#section-9.5" class="section-number selfRef">9.5. </a><a href="#name-global-optimization" class="section-name selfRef">Global optimization</a>
         </h3>
-<p id="section-9.5-1">Reoptimizing the DAG requires potentially redeploying all new Junction Segments network wide in a coordinated, make before break manner.<a href="#section-9.5-1" class="pilcrow">¶</a></p>
-<p id="section-9.5-2">Since the DAG MID and version are encoded in the color field of an SR Policy, globally optimizing a DAG with make-before-break considerations requires
-deploying new Junction segments as SR Policies with unique color values to all Junction nodes of the new DAG. After all of the new Junction segments are deployed,
-the ingress node can be updated with new SID lists which utilize the new DAG Junction segments of its's neighbors.<a href="#section-9.5-2" class="pilcrow">¶</a></p>
-<p id="section-9.5-3">TODO This section needs further discussion.<a href="#section-9.5-3" class="pilcrow">¶</a></p>
-<p id="section-9.5-4">TODO<a href="#section-9.5-4" class="pilcrow">¶</a></p>
+<p id="section-9.5-1">Global optimization of a DAG requires coordinated updates across all participating Junction Nodes.
+This process follows a make-before-break model, where a new version of the DAG is deployed alongside the existing one.
+The ingress SR Policy (or policies) is the last element to be updated.<a href="#section-9.5-1" class="pilcrow">¶</a></p>
+<p id="section-9.5-2">Since the Color field of an SR Policy indicates DAG membership, and is managed by the controller, global optimization
+with make-before-break considerations necessitates deploying new Junction segments. This, in turn, requires the instantiation
+of new SR Policies with unique Color values. These new SR Policies are deployed to all Junction Nodes participating in the
+updated DAG instance and must be associated with distinct Binding SID values from those of the existing instance.<a href="#section-9.5-2" class="pilcrow">¶</a></p>
+<p id="section-9.5-3">To minimize version churn and both color and label consumption, it is <span class="bcp14">RECOMMENDED</span> that controllers limit the number of
+concurrently deployed DAG versions for a given Multi-Point-to-Edge (MPTE) tunnel. Under normal conditions, only a single active
+DAG version should exist. During transitions, at most two versions (the current and the new one) should be present. Color and label values may be reused once globally released.<a href="#section-9.5-3" class="pilcrow">¶</a></p>
+<p id="section-9.5-4">The Binding SID associated with a DAG instance <span class="bcp14">MUST</span> remain constant during local optimizations, but <span class="bcp14">MUST</span> change during global optimizations to avoid the risk of routing loops. Therefore, in the example
+above, if a Junction Node is participating in DAG #1, version #1 would be using one binding SID value and version #2 is using another.<a href="#section-9.5-4" class="pilcrow">¶</a></p>
+<p id="section-9.5-5">Once all Junction segments are deployed to all Junction nodes, the ingress node is updated with new SID lists referencing the Binding SIDs of the new Junction segments downstream.<a href="#section-9.5-5" class="pilcrow">¶</a></p>
+<p id="section-9.5-6">The Color field on ingress nodes is critical for traffic steering and therefore <span class="bcp14">MUST</span> remain constant during global optimizations. In contrast, Color values used on Junction Nodes
+<span class="bcp14">MAY</span> be reused or encoded to reflect DAG membership or instance mappings. Similarly, the binding SID on the ingress SR Policy also remains constant.<a href="#section-9.5-6" class="pilcrow">¶</a></p>
+<p id="section-9.5-7">The controller tracks the Color values and their corresponding usage for DAG ID and version. For example:<a href="#section-9.5-7" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-9.5-8.1">
+            <p id="section-9.5-8.1.1">Color value 500 – DAG #1 – Version #1<a href="#section-9.5-8.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.5-8.2">
+            <p id="section-9.5-8.2.1">Color value 501 – DAG #2 – Version #1<a href="#section-9.5-8.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.5-8.3">
+            <p id="section-9.5-8.3.1">Color value 502 – DAG #1 – Version #2<a href="#section-9.5-8.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-9.5-9">When performing global updates, controllers <span class="bcp14">SHOULD</span> ensure that all Junction Nodes are updated in a coordinated and consistent manner before activating the new DAG on the ingress.
+If the update process fails partially, the controller <span class="bcp14">SHOULD</span> roll back the new deployment and retain the existing
+stable DAG version and it's Junction Segments to avoid inconsistencies in forwarding behavior.<a href="#section-9.5-9" class="pilcrow">¶</a></p>
+<p id="section-9.5-10">TODO Example workflow diagram<a href="#section-9.5-10" class="pilcrow">¶</a></p>
+<p id="section-9.5-11">TODO<a href="#section-9.5-11" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1622,8 +1695,10 @@ the ingress node can be updated with new SID lists which utilize the new DAG Jun
       <h2 id="name-manageability-consideration">
 <a href="#section-11" class="section-number selfRef">11. </a><a href="#name-manageability-consideration" class="section-name selfRef">Manageability Considerations</a>
       </h2>
-<p id="section-11-1">This document currently proposes using the existing SR Policy construct with a color value representing the DAG MID and version. Since SR Policy color value is originally intended for ingress traffic
-steering on matched routers, a deployment <span class="bcp14">MUST</span> allocate a color range which will be used for MPTE and <span class="bcp14">MUST NOT</span> be assigned to any advertised routes in the network.<a href="#section-11-1" class="pilcrow">¶</a></p>
+<p id="section-11-1">This document currently proposes using the existing SR Policy construct with a color value representing the DAG MID and version.
+Since SR Policy color value is originally intended for ingress traffic
+steering on matched routers, a deployment <span class="bcp14">MUST</span> allocate a color range which will be used for MPTE and <span class="bcp14">MUST NOT</span> be assigned
+to any advertised routes in the network.<a href="#section-11-1" class="pilcrow">¶</a></p>
 <p id="section-11-2">TODO<a href="#section-11-2" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1735,6 +1810,22 @@ steering on matched routers, a deployment <span class="bcp14">MUST</span> alloca
 <div class="email">
 <span>Email:</span>
 <a href="mailto:vbeeram@juniper.net" class="email">vbeeram@juniper.net</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Nick Buraglio</span></div>
+<div dir="auto" class="left"><span class="org">Energy Sciences Network</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:buraglio@forwardingplane.net" class="email">buraglio@forwardingplane.net</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Shaofu Peng</span></div>
+<div dir="auto" class="left"><span class="org">ZTE Corporation</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:peng.shaofu@zte.com.cn" class="email">peng.shaofu@zte.com.cn</a>
 </div>
 </address>
 </section>
