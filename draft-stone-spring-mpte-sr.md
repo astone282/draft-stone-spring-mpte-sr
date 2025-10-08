@@ -158,7 +158,7 @@ multiple tunnels to support multi-ingress scenarios. Each tunnel MAY use a null 
 However, MPTE SR Policies that are originated or defined by network devices are typically limited to a single ingress and a single egress endpoint unless protocols such as PCEP or NETCONF are extended
 to encode additional intended destination node(s) for controller-based path computation.
 
-As mentioned in section 4.2, the DAG tunnel may be re-used by multiple ingress SR Policies. This mechanism is used to support acheiving multiple ingress nodes originated from then network,
+As mentioned in section 4.2, the DAG tunnel may be re-used by multiple ingress SR Policies. This mechanism is used to support acheiving multiple ingress nodes originated from the network,
 by way of the controller binding and attaching the ingress SR Policies to a pre-existing DAG sharing the same intent and endpoints.
 
 
