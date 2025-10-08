@@ -5,12 +5,12 @@
 Source Packet Routing in Networking                             A. Stone
 Internet-Draft                                                     Nokia
 Intended status: Standards Track                            V. P. Beeram
-Expires: 9 April 2026                                   Juniper Networks
+Expires: 11 April 2026                                  Juniper Networks
                                                              N. Buraglio
                                                  Energy Sciences Network
                                                                  S. Peng
                                                          ZTE Corporation
-                                                          6 October 2025
+                                                          8 October 2025
 
 
            Multipath Traffic Engineering for Segment Routing
@@ -47,7 +47,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 9 April 2026.
+   This Internet-Draft will expire on 11 April 2026.
 
 Copyright Notice
 
@@ -288,7 +288,7 @@ Table of Contents
 
    As mentioned in section 4.2, the DAG tunnel may be re-used by
    multiple ingress SR Policies.  This mechanism is used to support
-   acheiving multiple ingress nodes originated from then network, by way
+   acheiving multiple ingress nodes originated from the network, by way
    of the controller binding and attaching the ingress SR Policies to a
    pre-existing DAG sharing the same intent and endpoints.
 
