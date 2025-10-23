@@ -166,7 +166,7 @@ by way of the controller binding and attaching the ingress SR Policies to a pre-
 
 A path computation request or tunnel delegation notification is sent to the controller, specifying one or more ingress and egress nodes, along with constraints.
 This request may originate from an ingress router in the network or be provisioned directly via an API to the controller.
-This tunnel computation request or delegation pertains to an instance of an MPTE Tunnel achieved with the ingress SR Policy..
+This tunnel computation request or delegation pertains to an instance of an MPTE Tunnel achieved with the ingress SR Policy.
 
 The controller computes the DAG for ingress and all egress endpoints to determine all Junction nodes in the DAG to be used for the tunnel.
 
@@ -456,11 +456,11 @@ of new SR Policies with unique Color values. These new SR Policies are deployed 
 updated DAG instance and must be associated with distinct Binding SID values from those of the existing instance.
 
 To minimize version churn and both color and label consumption, it is RECOMMENDED that controllers limit the number of
-concurrently deployed DAG versions for a given Multi-Point-to-Edge (MPTE) tunnel. Under normal conditions, only a single active
+concurrently deployed DAG instances for the same tunnel. Under normal conditions, only a single active
 DAG version should exist. During transitions, at most two versions (the current and the new one) should be present. Color and label values may be reused once globally released.
 
 The Binding SID associated with a DAG instance MUST remain constant during local optimizations, but MUST change during global optimizations to avoid the risk of routing loops. Therefore, in the example
-above, if a Junction Node is participating in DAG #1, version #1 would be using one binding SID value and version #2 is using another.
+above, if a Junction Node is participating in DAG #1, version #1 continues to use one binding SID value and version #2 is using a distinct binding SID value on each Junction node.
 
 Once all Junction segments are deployed to all Junction nodes, the ingress node is updated with new SID lists referencing the Binding SIDs of the new Junction segments downstream.
 
