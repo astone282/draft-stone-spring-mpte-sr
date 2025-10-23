@@ -12,21 +12,20 @@
 <meta content="
        This document describes a mechanism to achieve Multipath Traffic Engineering for Segment Routing based networks. 
     " name="description">
-<meta content="xml2rfc 3.30.2" name="generator">
+<meta content="xml2rfc 3.31.0" name="generator">
 <meta content="draft-stone-spring-mpte-sr-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.30.2
-    Python 3.12.11
+  xml2rfc 3.31.0
+    Python 3.12.12
     ConfigArgParse 1.7
     google-i18n-address 3.1.1
     intervaltree 3.1.0
     Jinja2 3.1.6
     lxml 5.3.1
-    platformdirs 4.4.0
+    platformdirs 4.5.0
     pycountry 24.6.1
     PyYAML 6.0.2
     requests 2.32.5
-    setuptools 80.9.0
     wcwidth 0.2.14
 -->
 <link href="draft-stone-spring-mpte-sr.xml" rel="alternate" type="application/rfc+xml">
@@ -1050,7 +1049,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Stone, et al.</td>
-<td class="center">Expires 11 April 2026</td>
+<td class="center">Expires 26 April 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1063,12 +1062,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-stone-spring-mpte-sr-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-10-08" class="published">8 October 2025</time>
+<time datetime="2025-10-23" class="published">23 October 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-04-11">11 April 2026</time></dd>
+<dd class="expires"><time datetime="2026-04-26">26 April 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1125,7 +1124,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 11 April 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 26 April 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1395,7 +1394,7 @@ by way of the controller binding and attaching the ingress SR Policies to a pre-
       </h2>
 <p id="section-5-1">A path computation request or tunnel delegation notification is sent to the controller, specifying one or more ingress and egress nodes, along with constraints.
 This request may originate from an ingress router in the network or be provisioned directly via an API to the controller.
-This tunnel computation request or delegation pertains to an instance of an MPTE Tunnel achieved with the ingress SR Policy..<a href="#section-5-1" class="pilcrow">¶</a></p>
+This tunnel computation request or delegation pertains to an instance of an MPTE Tunnel achieved with the ingress SR Policy.<a href="#section-5-1" class="pilcrow">¶</a></p>
 <p id="section-5-2">The controller computes the DAG for ingress and all egress endpoints to determine all Junction nodes in the DAG to be used for the tunnel.<a href="#section-5-2" class="pilcrow">¶</a></p>
 <p id="section-5-3">The controller signals the Junction Segment(s) to all downstream nodes, starting with the penultimate egress hop node(s) and
 working upwards toward the ingress nodes.<a href="#section-5-3" class="pilcrow">¶</a></p>
@@ -1739,10 +1738,10 @@ with make-before-break considerations necessitates deploying new Junction segmen
 of new SR Policies with unique Color values. These new SR Policies are deployed to all Junction Nodes participating in the
 updated DAG instance and must be associated with distinct Binding SID values from those of the existing instance.<a href="#section-10.2-2" class="pilcrow">¶</a></p>
 <p id="section-10.2-3">To minimize version churn and both color and label consumption, it is <span class="bcp14">RECOMMENDED</span> that controllers limit the number of
-concurrently deployed DAG versions for a given Multi-Point-to-Edge (MPTE) tunnel. Under normal conditions, only a single active
+concurrently deployed DAG instances for the same tunnel. Under normal conditions, only a single active
 DAG version should exist. During transitions, at most two versions (the current and the new one) should be present. Color and label values may be reused once globally released.<a href="#section-10.2-3" class="pilcrow">¶</a></p>
 <p id="section-10.2-4">The Binding SID associated with a DAG instance <span class="bcp14">MUST</span> remain constant during local optimizations, but <span class="bcp14">MUST</span> change during global optimizations to avoid the risk of routing loops. Therefore, in the example
-above, if a Junction Node is participating in DAG #1, version #1 would be using one binding SID value and version #2 is using another.<a href="#section-10.2-4" class="pilcrow">¶</a></p>
+above, if a Junction Node is participating in DAG #1, version #1 continues to use one binding SID value and version #2 is using a distinct binding SID value on each Junction node.<a href="#section-10.2-4" class="pilcrow">¶</a></p>
 <p id="section-10.2-5">Once all Junction segments are deployed to all Junction nodes, the ingress node is updated with new SID lists referencing the Binding SIDs of the new Junction segments downstream.<a href="#section-10.2-5" class="pilcrow">¶</a></p>
 <p id="section-10.2-6">The Color field on ingress nodes is critical for traffic steering and therefore <span class="bcp14">MUST</span> remain constant during global optimizations. In contrast, Color values used on Junction Nodes
 <span class="bcp14">MAY</span> be reused or encoded to reflect DAG membership or instance mappings. Similarly, the binding SID on the ingress SR Policy also remains constant.<a href="#section-10.2-6" class="pilcrow">¶</a></p>
