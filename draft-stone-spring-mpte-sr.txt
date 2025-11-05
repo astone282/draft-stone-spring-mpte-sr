@@ -5,12 +5,12 @@
 Source Packet Routing in Networking                             A. Stone
 Internet-Draft                                                     Nokia
 Intended status: Standards Track                            V. P. Beeram
-Expires: 3 May 2026                                     Juniper Networks
+Expires: 9 May 2026                                     Juniper Networks
                                                              N. Buraglio
                                                  Energy Sciences Network
                                                                  S. Peng
                                                          ZTE Corporation
-                                                         30 October 2025
+                                                         5 November 2025
 
 
            Multipath Traffic Engineering for Segment Routing
@@ -47,7 +47,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 3 May 2026.
+   This Internet-Draft will expire on 9 May 2026.
 
 Copyright Notice
 
@@ -199,9 +199,9 @@ Table of Contents
    signaling and forwarding behavior of a Junction node in an SR
    network.
 
-   It’s worth noting that the architectural use of a Junction Segment is
-   analogous to a Replication Segment [RFC9524], but it performs
-   forwarding based on load balancing rather than replication.
+   It’s worth noting that the architectural concept of a Junction
+   Segment is similar to a Replication Segment [RFC9524], but it
+   performs forwarding based on load balancing rather than replication.
 
    A Junction Segment is installed on nodes identified as Junction
    Nodes, as defined in [I-D.draft-kompella-teas-mpte].
@@ -211,8 +211,9 @@ Table of Contents
    and a Binding SID.
 
    A Binding Segment is attached to an SR Policy Candidate Path with one
-   or more SID Lists.  OIF instruction signaling is achieved via segment
-   lists, where the top SID identifies the outgoing interface(s).
+   or more SID Lists, each representing an outgoing link or a segmentr
+   routed path to a downstream node with the top SID identifying the
+   outgoing interface of the link.
 
    Since a Junction Segment may egress to multiple downstream nodes, the
    endpoint of the corresponding SR Policy MUST be set to the null value
