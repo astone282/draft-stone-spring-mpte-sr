@@ -111,13 +111,14 @@ As per {{I-D.draft-kompella-teas-mpte}}, the controller acting as the MC is resp
 
 The concept of a Junction Segment is introduced to describe the signaling and forwarding behavior of a Junction node in an SR network.
 
-It’s worth noting that the architectural use of a Junction Segment is analogous to a Replication Segment {{RFC9524}}, but it performs forwarding based on load balancing rather than replication.
+It’s worth noting that the architectural concept of a Junction Segment is similar to a Replication Segment {{RFC9524}}, but it performs forwarding based on load balancing rather than replication.
 
 A Junction Segment is installed on nodes identified as Junction Nodes, as defined in {{I-D.draft-kompella-teas-mpte}}.
 
 This document version proposes that a Junction Segment is realized using the existing SR Policy construct with a single Candidate Path and a Binding SID.
 
-A Binding Segment is attached to an SR Policy Candidate Path with one or more SID Lists. OIF instruction signaling is achieved via segment lists, where the top SID identifies the outgoing interface(s).
+A Binding Segment is attached to an SR Policy Candidate Path with one or more SID Lists, each representing an outgoing link or a segmentr routed path to a downstream node with the
+top SID identifying the outgoing interface of the link.
 
 Since a Junction Segment may egress to multiple downstream nodes, the endpoint of the corresponding SR Policy MUST be set to the null value (0.0.0.0).
 Therefore, a Junction segment is identified by its <headend, color> attribute.
