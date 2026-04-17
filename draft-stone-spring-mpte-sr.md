@@ -29,7 +29,10 @@ author:
     fullname: Shaofu Peng
     organization: ZTE Corporation
     email: peng.shaofu@zte.com.cn
-
+ -
+    fullname: Zafar Ali
+    organization: Cisco Systems, Inc.
+    email: zali@cisco.com
 
 normative:
   I-D.draft-kompella-teas-mpte:
@@ -38,6 +41,9 @@ normative:
   RFC5440:
   RFC8231:
   RFC7752:
+  RFC7880:
+  RFC8287:
+  RFC9259:
   I-D.draft-ietf-idr-segment-routing-te-policy:
   I-D.draft-ietf-idr-bgp-ls-sr-policy:
   I-D.draft-ietf-rtgwg-segment-routing-ti-lfa:
@@ -117,7 +123,7 @@ A Junction Segment is installed on nodes identified as Junction Nodes, as define
 
 This document version proposes that a Junction Segment is realized using the existing SR Policy construct with a single Candidate Path and a Binding SID.
 
-A Binding Segment is attached to an SR Policy Candidate Path with one or more SID Lists, each representing an outgoing link or a segmentr routed path to a downstream node with the
+A Binding Segment is attached to an SR Policy Candidate Path with one or more SID Lists, each representing an outgoing link or a segment routed path to a downstream node with the
 top SID identifying the outgoing interface of the link.
 
 Since a Junction Segment may egress to multiple downstream nodes, the endpoint of the corresponding SR Policy MUST be set to the null value (0.0.0.0).
@@ -128,7 +134,7 @@ This document assumes that the color value is mapped to the <MID, Version> tuple
 It is RECOMMENDED that a globally consistent color value be used across all Junction Segments that belong to a single DAG instance or that serve a common DAG intent.
 
 A DAG may consist of multiple Junction Segments that collectively represent a single DAG tunnel. This MP-TE tunnel is used by one or many SR Policies instantiated on one or many ingress nodes.
-A Junction Segment may be reused by multiple ingress SR Policies, provided that the subgraph it forwards over is fully shared by all SR Policies using it, including the set of their respective egress nodes.
+A Junction Segment may be used by multiple ingress SR Policies, provided that the subgraph it forwards over is fully shared by all SR Policies using it, including the set of their respective egress nodes.
 
 The ingress SR Policy is responsible for initiating traffic steering into the DAG and is associated with a color value representing service intent. The junction segment, on the other hand,
 is a DAG forwarding construct implemented as an SR Policy with a BSID.
@@ -153,7 +159,7 @@ uses the same, single Junction Segment value which is a Binding Segment.
 {{I-D.draft-kompella-teas-mpte}} specifies that an MPTE Tunnel could have multiple ingress and/or multiple egress nodes. Currently, the SR Policy architecture defines an SR Policy using a {Headend, Endpoint, Color} tuple,
 where the Endpoint may be set to the null value (0.0.0.0), indicating multiple destinations.
 
-For controller-initiated tunnels, the intended ingress and egress node(s) can be provided to the controller based on implementation-specific methods. These may be signaled to the network as
+For controller-initiated tunnels, the intended ingress and egress node(s) can be provided to the controller based on implementation specific methods. These may be signaled to the network as
 multiple tunnels to support multi-ingress scenarios. Each tunnel MAY use a null Endpoint value to support multi-egress.
 
 However, MPTE SR Policies that are originated or defined by network devices are typically limited to a single ingress and a single egress endpoint unless protocols such as PCEP or NETCONF are extended
@@ -165,7 +171,7 @@ by way of the controller binding and attaching the ingress SR Policies to a pre-
 
 # Operation
 
-A path computation request or tunnel delegation notification is sent to the controller, specifying one or more ingress and egress nodes, along with constraints.
+A path computation request or tunnel delegation notification is sent to the controller, specifying one or more ingress and egress nodes, along with constraints or SLA policy information.
 This request may originate from an ingress router in the network or be provisioned directly via an API to the controller.
 This tunnel computation request or delegation pertains to an instance of an MPTE Tunnel achieved with the ingress SR Policy.
 
@@ -177,6 +183,7 @@ working upwards toward the ingress nodes.
 Junction Segment deployments are in the form of a unicast SR Policy with a single Candidate Path using protocols such as PCEP, BGP, or NETCONF.
 The optional use of an MPTED Reflector is protocol specific. For example, PCEP sessions terminate on each
 and every Junction node in the topology and BGP may do the same or make use of a BGP Route Reflector.
+
 A BSID MUST be explicitly requested or signaled to the Junction node for assignment. If the controller opts for local node assigned value, it MUST wait to signal
 upstream Junction nodes about their Junction segments in their outgoing SID lists. The BSID value MAY be a constant value globally, if assigned by PCE/Controller,
 or may be a different value on each Junction Node whether it’s assigned by PCE/Controller or the local Junction Node itself.
@@ -297,7 +304,7 @@ Ingress SR Policy (Ingress only):
 # Load-balancing
 
 When a packet with the BSID assigned to the Junction Segment is received at its Junction Node,
-the node performs weighted ECMP (Equal-Cost Multi-Path) flow-based forwarding across all egress SID lists associated with the Junction Segment.
+the node performs weighted non-equal cost flow-based forwarding across all egress SID lists associated with the Junction Segment.
 
 As per {{RFC9256} section 2.11, The fraction of the flows associated with a given segment list is w/Sw, where w is the weight of the segment
 list and Sw is the sum of the weights of the segment lists. To exclude forwarding via a specific egress interface
@@ -474,7 +481,7 @@ The controller tracks the Color values and their corresponding usage for DAG ID 
 - Color value 501 – DAG #2 – Version #1
 - Color value 502 – DAG #1 – Version #2
 
-When performing global updates, controllers SHOULD ensure that all Junction Nodes are updated in a coordinated and consistent manner before activating the new DAG on the ingress.
+When performing global changes, controllers SHOULD ensure that all Junction Nodes are modified in a coordinated and consistent manner before activating the new DAG on the ingress.
 If the update process fails partially, the controller SHOULD roll back the new deployment and retain the existing
 stable DAG version and it's Junction Segments to avoid inconsistencies in forwarding behavior.
 
@@ -578,20 +585,101 @@ DELETE Junction Segment X1:
 ~~~
 
 
-# Security Considerations
-
-TODO
-
 # Manageability Considerations
+
+## Control of Function through Configuration and Policy
 
 This document currently proposes using the existing SR Policy construct with a color value representing the DAG MID and version.
 Since SR Policy color value is originally intended for ingress traffic
 steering on matched routers, a deployment MUST allocate a color range which will be used for MPTE and MUST NOT be assigned
 to any advertised routes in the network.
 
+## Information and Data Models, e.g., MIB modules
+
 TODO
 
+## Liveness Detection and Monitoring
 
+Liveness detection for an MPTE SR deployment covers two independent scopes: the underlying IP link topology and the DAG tunnel itself.
+
+### Topology
+
+Seamless BFD (S-BFD)[RFC7880] is RECOMMENDED to quickly detect failures of individual IP links that comprise the topology over which
+the DAG is constructed. S-BFD sessions run on each link in the topology so that a node can
+quickly determine whether a directly connected link is functional and if not bring it operationally down, resulting in any tunnel-based S-BFD
+sessions which run across the link to also fail. The effect of the tunnel based S-BFD is discussed
+in the next section. The controller keeping in sync with the IGP topology would continue to react to changes in the topology and can
+determine whether corrective action is necessary.
+
+### DAG Tunnel
+
+Liveness detection of the DAG tunnel itself has more considerations than link-level detection as it must verify end-to-end forwarding
+behavior across all Junction Nodes and the processing of the Junction Segment which then forwards across the paths, based on weight and local packet hashing.
+
+S-BFD initiated from the headend of the ingress SR Policy to the DAG endpoint(s) can verify reachability to the first set of downstream
+Junction Nodes. However, due to weighted ECMP behavior at each Junction Node, headend-originated S-BFD can be insufficient to exercise all
+possible forwarding paths that the DAG tunnel may take from the ingress node toward the egress node(s) unless it generates a non-determistic amount of
+packets with sufficient entropy to excercise all possible egress forwarding. A single S-BFD probe from the
+headend will follow a hashed path through the DAG and cannot guarantee that every egress SID list on every Junction Node along the DAG
+is functional.
+
+It is RECOMMENDED each egress SID list of each Junction Segment runs its own S-BFD session to verify that the complete forwarding path,
+from that specific source node through the SID list to the terminating downstream node. A failure detected for a single egress SID list would
+mark that SID list inactive, removing it from the weighted ECMP set, leaving the remaining egress SID lists active. If there are no more
+active egress SID lists, then the Junction Segment itself would become inactive resulting in any upstream S-BFD sessions using this
+Junction segment to also go inactive. This per-Junction, per-SID-list approach ensures that every segment of the DAG is independently monitored,
+regardless of weight ECMP hashing and distribution.
+
+The egress node(s) will recieve many S-BFD echo packets, one for each segment list on each Junction Node for each DAG.
+
+Upon failure of any segment list in the DAG, the controller SHOULD take corrective action if necessary, such as adjusting weights or
+performing other local or global optimizations as described in Section 10.
+
+## Verifying Correct Operation
+
+OAM Ping and Traceroute ([RFC8287], [RFC9259]) are useful functions to verify and monitor operations.
+
+Similar to Liveness and Detection described in Section 11.3.2, a single OAM probe originated from the ingress is insufficient to
+verify correct operation of the DAG for all paths to the egress node(s). Due to the weighted forwarding behavior at each Junction
+Node, a headend-originated traceroute or ping will follow a single hashed path through the DAG and will not
+exercise every egress SID list on every Junction Node.
+
+To verify the complete DAG, the controller SHOULD collect and aggregate OAM operations on a per-Junction, per-segment-list basis
+to construct a holistic view of the DAG. Each test targets the downstream path encoded in that SID list, through to the next downstream
+Junction Node or the DAG egress node(s). This ensures that every forwarding path segment within the DAG is individually verified,
+independent of hash distribution at any upstream node. The controller MAY request this on-demand, or be provided the information periodically.
+
+The frequency of OAM verification is deployment specific.
+
+As these tests may run in parallel or sequentially and not during the same operational moment in time, the accuracy of the complete
+result set may contain a skew of measurements between the individual tests originated on each Junction node. It's RECOMMENDED to perform multiple test samples.
+
+An example procedure is as follows:
+
+1. The controller enumerates all Junction Nodes in the DAG and their associated egress SID lists.
+
+2. For each Junction Node, the controller triggers an OAM ping or traceroute for each egress SID list. The probe packet is sourced
+from the Junction Node and follows the SID list toward the downstream Junction Node or egress node. Traceroute operations collect per-hop
+forwarding state, while ping operations verify end-to-end reachability of the segment list path.
+
+3. Each Junction Node reports the OAM results back to the controller. The results may include the success or failure status,
+round-trip delay, and for traceroute, the per-hop path information.
+
+4. The controller aggregates all per-Junction, per-segment-list OAM results to construct a complete operational view of the DAG.
+This aggregated view allows the controller to verify and present to an operator that every forwarding path within the DAG is
+functioning correctly and what measurements are present.
+
+## Requirements on Other Protocols and Functional Components
+
+TODO
+
+## Impact on Network Operation
+
+TODO
+
+# Security Considerations
+
+TODO
 
 # IANA Considerations
 
@@ -602,4 +690,4 @@ None at this time
 # Acknowledgments
 {:numbered="false"}
 
-None at this time
+Thanks to Matthew Bocci, Richard "Footer" Foote, and Martin Vigoureux for discussions on this document.
