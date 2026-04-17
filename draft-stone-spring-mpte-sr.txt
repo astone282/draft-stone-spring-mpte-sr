@@ -5,12 +5,14 @@
 Source Packet Routing in Networking                             A. Stone
 Internet-Draft                                                     Nokia
 Intended status: Standards Track                            V. P. Beeram
-Expires: 9 May 2026                                     Juniper Networks
+Expires: 19 October 2026                                Juniper Networks
                                                              N. Buraglio
                                                  Energy Sciences Network
                                                                  S. Peng
                                                          ZTE Corporation
-                                                         5 November 2025
+                                                                  Z. Ali
+                                                     Cisco Systems, Inc.
+                                                           17 April 2026
 
 
            Multipath Traffic Engineering for Segment Routing
@@ -47,11 +49,11 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 9 May 2026.
+   This Internet-Draft will expire on 19 October 2026.
 
 Copyright Notice
 
-   Copyright (c) 2025 IETF Trust and the persons identified as the
+   Copyright (c) 2026 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -87,8 +89,16 @@ Table of Contents
        10.1.1.  Local optimization Example
      10.2.  Global optimization
        10.2.1.  Global Optimization Example
-   11. Security Considerations
-   12. Manageability Considerations
+   11. Manageability Considerations
+     11.1.  Control of Function through Configuration and Policy
+     11.2.  Information and Data Models, e.g., MIB modules
+     11.3.  Liveness Detection and Monitoring
+       11.3.1.  Topology
+       11.3.2.  DAG Tunnel
+     11.4.  Verifying Correct Operation
+     11.5.  Requirements on Other Protocols and Functional Components
+     11.6.  Impact on Network Operation
+   12. Security Considerations
    13. IANA Considerations
    14. References
      14.1.  Normative References
@@ -211,7 +221,7 @@ Table of Contents
    and a Binding SID.
 
    A Binding Segment is attached to an SR Policy Candidate Path with one
-   or more SID Lists, each representing an outgoing link or a segmentr
+   or more SID Lists, each representing an outgoing link or a segment
    routed path to a downstream node with the top SID identifying the
    outgoing interface of the link.
 
@@ -230,7 +240,7 @@ Table of Contents
    A DAG may consist of multiple Junction Segments that collectively
    represent a single DAG tunnel.  This MP-TE tunnel is used by one or
    many SR Policies instantiated on one or many ingress nodes.  A
-   Junction Segment may be reused by multiple ingress SR Policies,
+   Junction Segment may be used by multiple ingress SR Policies,
    provided that the subgraph it forwards over is fully shared by all SR
    Policies using it, including the set of their respective egress
    nodes.
@@ -276,7 +286,7 @@ Table of Contents
    value (0.0.0.0), indicating multiple destinations.
 
    For controller-initiated tunnels, the intended ingress and egress
-   node(s) can be provided to the controller based on implementation-
+   node(s) can be provided to the controller based on implementation
    specific methods.  These may be signaled to the network as multiple
    tunnels to support multi-ingress scenarios.  Each tunnel MAY use a
    null Endpoint value to support multi-egress.
@@ -297,10 +307,11 @@ Table of Contents
 
    A path computation request or tunnel delegation notification is sent
    to the controller, specifying one or more ingress and egress nodes,
-   along with constraints.  This request may originate from an ingress
-   router in the network or be provisioned directly via an API to the
-   controller.  This tunnel computation request or delegation pertains
-   to an instance of an MPTE Tunnel achieved with the ingress SR Policy.
+   along with constraints or SLA policy information.  This request may
+   originate from an ingress router in the network or be provisioned
+   directly via an API to the controller.  This tunnel computation
+   request or delegation pertains to an instance of an MPTE Tunnel
+   achieved with the ingress SR Policy.
 
    The controller computes the DAG for ingress and all egress endpoints
    to determine all Junction nodes in the DAG to be used for the tunnel.
@@ -314,14 +325,15 @@ Table of Contents
    NETCONF.  The optional use of an MPTED Reflector is protocol
    specific.  For example, PCEP sessions terminate on each and every
    Junction node in the topology and BGP may do the same or make use of
-   a BGP Route Reflector.  A BSID MUST be explicitly requested or
-   signaled to the Junction node for assignment.  If the controller opts
-   for local node assigned value, it MUST wait to signal upstream
-   Junction nodes about their Junction segments in their outgoing SID
-   lists.  The BSID value MAY be a constant value globally, if assigned
-   by PCE/Controller, or may be a different value on each Junction Node
-   whether it’s assigned by PCE/Controller or the local Junction Node
-   itself.
+   a BGP Route Reflector.
+
+   A BSID MUST be explicitly requested or signaled to the Junction node
+   for assignment.  If the controller opts for local node assigned
+   value, it MUST wait to signal upstream Junction nodes about their
+   Junction segments in their outgoing SID lists.  The BSID value MAY be
+   a constant value globally, if assigned by PCE/Controller, or may be a
+   different value on each Junction Node whether it’s assigned by PCE/
+   Controller or the local Junction Node itself.
 
    Each SR Policy contains one or more SID lists.  These SID lists must
    include at least two segment identifiers: one SID for forwarding to
@@ -458,9 +470,9 @@ Ingress SR Policy (Using Junction Segments):
 6.  Load-balancing
 
    When a packet with the BSID assigned to the Junction Segment is
-   received at its Junction Node, the node performs weighted ECMP
-   (Equal-Cost Multi-Path) flow-based forwarding across all egress SID
-   lists associated with the Junction Segment.
+   received at its Junction Node, the node performs weighted non-equal
+   cost flow-based forwarding across all egress SID lists associated
+   with the Junction Segment.
 
    As per [RFC9256] section 2.11, The fraction of the flows associated
    with a given segment list is w/Sw, where w is the weight of the
@@ -725,8 +737,8 @@ Ingress SR Policy (Using Junction Segments):
 
    *  Color value 502 – DAG #1 – Version #2
 
-   When performing global updates, controllers SHOULD ensure that all
-   Junction Nodes are updated in a coordinated and consistent manner
+   When performing global changes, controllers SHOULD ensure that all
+   Junction Nodes are modified in a coordinated and consistent manner
    before activating the new DAG on the ingress.  If the update process
    fails partially, the controller SHOULD roll back the new deployment
    and retain the existing stable DAG version and it's Junction Segments
@@ -829,11 +841,9 @@ Ingress SR Policy (Using Junction Segments):
      Color: 2000
      BSID: BSID-X1
 
-11.  Security Considerations
+11.  Manageability Considerations
 
-   TODO
-
-12.  Manageability Considerations
+11.1.  Control of Function through Configuration and Policy
 
    This document currently proposes using the existing SR Policy
    construct with a color value representing the DAG MID and version.
@@ -841,6 +851,133 @@ Ingress SR Policy (Using Junction Segments):
    traffic steering on matched routers, a deployment MUST allocate a
    color range which will be used for MPTE and MUST NOT be assigned to
    any advertised routes in the network.
+
+11.2.  Information and Data Models, e.g., MIB modules
+
+   TODO
+
+11.3.  Liveness Detection and Monitoring
+
+   Liveness detection for an MPTE SR deployment covers two independent
+   scopes: the underlying IP link topology and the DAG tunnel itself.
+
+11.3.1.  Topology
+
+   Seamless BFD (S-BFD)[RFC7880] is RECOMMENDED to quickly detect
+   failures of individual IP links that comprise the topology over which
+   the DAG is constructed.  S-BFD sessions run on each link in the
+   topology so that a node can quickly determine whether a directly
+   connected link is functional and if not bring it operationally down,
+   resulting in any tunnel-based S-BFD sessions which run across the
+   link to also fail.  The effect of the tunnel based S-BFD is discussed
+   in the next section.  The controller keeping in sync with the IGP
+   topology would continue to react to changes in the topology and can
+   determine whether corrective action is necessary.
+
+11.3.2.  DAG Tunnel
+
+   Liveness detection of the DAG tunnel itself has more considerations
+   than link-level detection as it must verify end-to-end forwarding
+   behavior across all Junction Nodes and the processing of the Junction
+   Segment which then forwards across the paths, based on weight and
+   local packet hashing.
+
+   S-BFD initiated from the headend of the ingress SR Policy to the DAG
+   endpoint(s) can verify reachability to the first set of downstream
+   Junction Nodes.  However, due to weighted ECMP behavior at each
+   Junction Node, headend-originated S-BFD can be insufficient to
+   exercise all possible forwarding paths that the DAG tunnel may take
+   from the ingress node toward the egress node(s) unless it generates a
+   non-determistic amount of packets with sufficient entropy to
+   excercise all possible egress forwarding.  A single S-BFD probe from
+   the headend will follow a hashed path through the DAG and cannot
+   guarantee that every egress SID list on every Junction Node along the
+   DAG is functional.
+
+   It is RECOMMENDED each egress SID list of each Junction Segment runs
+   its own S-BFD session to verify that the complete forwarding path,
+   from that specific source node through the SID list to the
+   terminating downstream node.  A failure detected for a single egress
+   SID list would mark that SID list inactive, removing it from the
+   weighted ECMP set, leaving the remaining egress SID lists active.  If
+   there are no more active egress SID lists, then the Junction Segment
+   itself would become inactive resulting in any upstream S-BFD sessions
+   using this Junction segment to also go inactive.  This per-Junction,
+   per-SID-list approach ensures that every segment of the DAG is
+   independently monitored, regardless of weight ECMP hashing and
+   distribution.
+
+   The egress node(s) will recieve many S-BFD echo packets, one for each
+   segment list on each Junction Node for each DAG.
+
+   Upon failure of any segment list in the DAG, the controller SHOULD
+   take corrective action if necessary, such as adjusting weights or
+   performing other local or global optimizations as described in
+   Section 10.
+
+11.4.  Verifying Correct Operation
+
+   OAM Ping and Traceroute ([RFC8287], [RFC9259]) are useful functions
+   to verify and monitor operations.
+
+   Similar to Liveness and Detection described in Section 11.3.2, a
+   single OAM probe originated from the ingress is insufficient to
+   verify correct operation of the DAG for all paths to the egress
+   node(s).  Due to the weighted forwarding behavior at each Junction
+   Node, a headend-originated traceroute or ping will follow a single
+   hashed path through the DAG and will not exercise every egress SID
+   list on every Junction Node.
+
+   To verify the complete DAG, the controller SHOULD collect and
+   aggregate OAM operations on a per-Junction, per-segment-list basis to
+   construct a holistic view of the DAG.  Each test targets the
+   downstream path encoded in that SID list, through to the next
+   downstream Junction Node or the DAG egress node(s).  This ensures
+   that every forwarding path segment within the DAG is individually
+   verified, independent of hash distribution at any upstream node.  The
+   controller MAY request this on-demand, or be provided the information
+   periodically.
+
+   The frequency of OAM verification is deployment specific.
+
+   As these tests may run in parallel or sequentially and not during the
+   same operational moment in time, the accuracy of the complete result
+   set may contain a skew of measurements between the individual tests
+   originated on each Junction node.  It's RECOMMENDED to perform
+   multiple test samples.
+
+   An example procedure is as follows:
+
+   1.  The controller enumerates all Junction Nodes in the DAG and their
+       associated egress SID lists.
+
+   2.  For each Junction Node, the controller triggers an OAM ping or
+       traceroute for each egress SID list.  The probe packet is sourced
+       from the Junction Node and follows the SID list toward the
+       downstream Junction Node or egress node.  Traceroute operations
+       collect per-hop forwarding state, while ping operations verify
+       end-to-end reachability of the segment list path.
+
+   3.  Each Junction Node reports the OAM results back to the
+       controller.  The results may include the success or failure
+       status, round-trip delay, and for traceroute, the per-hop path
+       information.
+
+   4.  The controller aggregates all per-Junction, per-segment-list OAM
+       results to construct a complete operational view of the DAG.
+       This aggregated view allows the controller to verify and present
+       to an operator that every forwarding path within the DAG is
+       functioning correctly and what measurements are present.
+
+11.5.  Requirements on Other Protocols and Functional Components
+
+   TODO
+
+11.6.  Impact on Network Operation
+
+   TODO
+
+12.  Security Considerations
 
    TODO
 
@@ -880,9 +1017,9 @@ Ingress SR Policy (Using Junction Segments):
    [I-D.draft-kompella-teas-mpte]
               Kompella, K., Jalil, L., Khaddam, M., and A. Smith,
               "Multipath Traffic Engineering", Work in Progress,
-              Internet-Draft, draft-kompella-teas-mpte-01, 7 July 2025,
+              Internet-Draft, draft-kompella-teas-mpte-02, 2 March 2026,
               <https://datatracker.ietf.org/doc/html/draft-kompella-
-              teas-mpte-01>.
+              teas-mpte-02>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -900,6 +1037,11 @@ Ingress SR Policy (Using Junction Segments):
               DOI 10.17487/RFC7752, March 2016,
               <https://www.rfc-editor.org/rfc/rfc7752>.
 
+   [RFC7880]  Pignataro, C., Ward, D., Akiya, N., Bhatia, M., and S.
+              Pallagatti, "Seamless Bidirectional Forwarding Detection
+              (S-BFD)", RFC 7880, DOI 10.17487/RFC7880, July 2016,
+              <https://www.rfc-editor.org/rfc/rfc7880>.
+
    [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
@@ -909,6 +1051,13 @@ Ingress SR Policy (Using Junction Segments):
               Extensions for Stateful PCE", RFC 8231,
               DOI 10.17487/RFC8231, September 2017,
               <https://www.rfc-editor.org/rfc/rfc8231>.
+
+   [RFC8287]  Kumar, N., Ed., Pignataro, C., Ed., Swallow, G., Akiya,
+              N., Kini, S., and M. Chen, "Label Switched Path (LSP)
+              Ping/Traceroute for Segment Routing (SR) IGP-Prefix and
+              IGP-Adjacency Segment Identifiers (SIDs) with MPLS Data
+              Planes", RFC 8287, DOI 10.17487/RFC8287, December 2017,
+              <https://www.rfc-editor.org/rfc/rfc8287>.
 
    [RFC8402]  Filsfils, C., Ed., Previdi, S., Ed., Ginsberg, L.,
               Decraene, B., Litkowski, S., and R. Shakir, "Segment
@@ -920,6 +1069,12 @@ Ingress SR Policy (Using Junction Segments):
               RFC 9256, DOI 10.17487/RFC9256, July 2022,
               <https://www.rfc-editor.org/rfc/rfc9256>.
 
+   [RFC9259]  Ali, Z., Filsfils, C., Matsushima, S., Voyer, D., and M.
+              Chen, "Operations, Administration, and Maintenance (OAM)
+              in Segment Routing over IPv6 (SRv6)", RFC 9259,
+              DOI 10.17487/RFC9259, June 2022,
+              <https://www.rfc-editor.org/rfc/rfc9259>.
+
 14.2.  Informative References
 
    [RFC9524]  Voyer, D., Ed., Filsfils, C., Parekh, R., Bidgoli, H., and
@@ -929,7 +1084,8 @@ Ingress SR Policy (Using Junction Segments):
 
 Acknowledgments
 
-   None at this time
+   Thanks to Matthew Bocci, Richard "Footer" Foote, and Martin Vigoureux
+   for discussions on this document.
 
 Authors' Addresses
 
@@ -951,3 +1107,8 @@ Authors' Addresses
    Shaofu Peng
    ZTE Corporation
    Email: peng.shaofu@zte.com.cn
+
+
+   Zafar Ali
+   Cisco Systems, Inc.
+   Email: zali@cisco.com
