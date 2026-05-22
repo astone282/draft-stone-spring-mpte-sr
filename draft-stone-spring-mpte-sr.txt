@@ -4,15 +4,13 @@
 
 Source Packet Routing in Networking                             A. Stone
 Internet-Draft                                                     Nokia
-Intended status: Standards Track                            V. P. Beeram
-Expires: 19 October 2026                                Juniper Networks
+Intended status: Informational                              V. P. Beeram
+Expires: 23 November 2026                               Juniper Networks
                                                              N. Buraglio
                                                  Energy Sciences Network
                                                                  S. Peng
                                                          ZTE Corporation
-                                                                  Z. Ali
-                                                     Cisco Systems, Inc.
-                                                           17 April 2026
+                                                             22 May 2026
 
 
            Multipath Traffic Engineering for Segment Routing
@@ -49,7 +47,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 October 2026.
+   This Internet-Draft will expire on 23 November 2026.
 
 Copyright Notice
 
@@ -70,39 +68,38 @@ Table of Contents
    1.  Introduction
      1.1.  Requirements Language
    2.  Terminology
-   3.  MP-TE vs Multiple SID lists
-   4.  MP-TE concepts with Segment Routing
+   3.  MPTE vs multiple SID lists
+   4.  MPTE concepts with Segment Routing
      4.1.  MPTED
      4.2.  Junction Segment
      4.3.  MPTE SR Policy - Tunnel with multiple ingress/egress
    5.  Operation
      5.1.  Example
    6.  Load-balancing
-   7.  Constraints
-   8.  Protection
-   9.  Other considerations
-     9.1.  Hierarchy
-     9.2.  Directly connected Junction nodes
-     9.3.  Broadcast links
-   10. Optimization
-     10.1.  Local optimization
-       10.1.1.  Local optimization Example
-     10.2.  Global optimization
-       10.2.1.  Global Optimization Example
-   11. Manageability Considerations
-     11.1.  Control of Function through Configuration and Policy
-     11.2.  Information and Data Models, e.g., MIB modules
-     11.3.  Liveness Detection and Monitoring
-       11.3.1.  Topology
-       11.3.2.  DAG Tunnel
-     11.4.  Verifying Correct Operation
-     11.5.  Requirements on Other Protocols and Functional Components
-     11.6.  Impact on Network Operation
-   12. Security Considerations
-   13. IANA Considerations
-   14. References
-     14.1.  Normative References
-     14.2.  Informative References
+   7.  Protection
+   8.  Other considerations
+     8.1.  Hierarchy
+     8.2.  Directly connected Junction nodes
+     8.3.  Broadcast links
+   9.  Optimization
+     9.1.  Local optimization
+       9.1.1.  Local optimization Example
+     9.2.  Global optimization
+       9.2.1.  Global Optimization Example
+   10. Manageability Considerations
+     10.1.  Control of Function through Configuration and Policy
+     10.2.  Information and Data Models, e.g., MIB modules
+     10.3.  Liveness Detection and Monitoring
+       10.3.1.  Topology
+       10.3.2.  DAG Tunnel
+     10.4.  Verifying Correct Operation
+     10.5.  Requirements on Other Protocols and Functional Components
+     10.6.  Impact on Network Operation
+   11. Security Considerations
+   12. IANA Considerations
+   13. References
+     13.1.  Normative References
+     13.2.  Informative References
    Acknowledgments
    Authors' Addresses
 
@@ -124,10 +121,9 @@ Table of Contents
    the specific details of each out of scope.
 
    This document proposes and discusses a centralized computation and
-   signaling mechanism for SR-based networks, primarily utilizing
-   existing constructs and capabilities.  As MPTE evolves, new
-   extensions to SR-based documents may be needed, both in terms of
-   architecture and protocol-specific semantics.
+   signaling mechanism for SR-based networks.  This document does not
+   define a new protocol or propose new extensions to the segment
+   routing protocol constructs.
 
    The document assumes the reader is familiar with [RFC8402],
    [RFC9256], and [I-D.draft-kompella-teas-mpte].
@@ -140,6 +136,12 @@ Table of Contents
    BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
    capitals, as shown here.
 
+   The BCP 14 keywords used in this document describe the expected
+   behavior of the centralized controller and the Junction nodes when
+   realizing an MPTE DAG using SR Policy and Binding SIDs.  They are not
+   intended to introduce new requirements on the underlying SR Policy,
+   PCEP, BGP, BGP-LS, or NETCONF protocols themselves.
+
 2.  Terminology
 
    *  For MPTE terminology such as MPTED, DAG, MC, MID, Junction node
@@ -147,7 +149,7 @@ Table of Contents
 
    *  For SR terminology see [RFC8402] and [RFC9256].
 
-3.  MP-TE vs Multiple SID lists
+3.  MPTE vs multiple SID lists
 
    It's important to recognize the SR Policy information model supports
    multiple SID lists, effectively encoding multiple unique paths on a
@@ -176,7 +178,7 @@ Table of Contents
    requirements, overall network design, link/path metrics, and the
    DAG’s structure.
 
-4.  MP-TE concepts with Segment Routing
+4.  MPTE concepts with Segment Routing
 
    This document proposes the below concepts for applying MPTE in an SR
    environment.
@@ -185,7 +187,7 @@ Table of Contents
 
    The MPTED is managed by a centralized controller, such as a PCE
    acting as the MC.  Topology discovery is performed using BGP-LS
-   [RFC7752], while transport control plane signaling is achieved
+   [RFC9552], while transport control plane signaling is achieved
    through controller-oriented protocols such as PCEP [RFC5440],
    [RFC8231] and BGP/BGP-LS
    [I-D.draft-ietf-idr-segment-routing-te-policy],
@@ -195,12 +197,12 @@ Table of Contents
 
    [I-D.draft-kompella-teas-mpte] specifies that a node in the MPTED is
    identified by its IPv6 loopback address.  However, this document
-   allows the use of a 32-bit dotted quad router ID as an alternative.
-   This value represents the headend address of a node participating in
-   the DAG.
+   allows the use of a 32-bit dotted quad router ID as an alternative to
+   support IPv4 or dual stack networks.  This value represents the
+   headend address of a node participating in the DAG.
 
    As per [I-D.draft-kompella-teas-mpte], the controller acting as the
-   MC is responsible for assigning the MPID and incrementing the MPTED
+   MC is responsible for assigning the MID and incrementing the MPTED
    unique ID version.
 
 4.2.  Junction Segment
@@ -227,8 +229,8 @@ Table of Contents
 
    Since a Junction Segment may egress to multiple downstream nodes, the
    endpoint of the corresponding SR Policy MUST be set to the null value
-   (0.0.0.0).  Therefore, a Junction segment is identified by its
-   <headend, color> attribute.
+   (0.0.0.0 for IPv4, :: for IPv6).  Therefore, a Junction segment is
+   identified by its <headend, color> attribute.
 
    This document assumes that the color value is mapped to the <MID,
    Version> tuple and is tracked by the controller.
@@ -238,7 +240,7 @@ Table of Contents
    that serve a common DAG intent.
 
    A DAG may consist of multiple Junction Segments that collectively
-   represent a single DAG tunnel.  This MP-TE tunnel is used by one or
+   represent a single DAG tunnel.  This MPTE tunnel is used by one or
    many SR Policies instantiated on one or many ingress nodes.  A
    Junction Segment may be used by multiple ingress SR Policies,
    provided that the subgraph it forwards over is fully shared by all SR
@@ -259,8 +261,7 @@ Table of Contents
 
    The controller is responsible for maintaining and tracking the
    association and semantic meaning of color values across all Junction
-   Segments that participate in the DAG.  See Section 9.5 for additional
-   discussion.
+   Segments that participate in the DAG.
 
    Accordingly, an implementation SHOULD treat ingress SR Policies and
    Junction Segments as decoupled constructs, each with their own
@@ -297,9 +298,9 @@ Table of Contents
    encode additional intended destination node(s) for controller-based
    path computation.
 
-   As mentioned in section 4.2, the DAG tunnel may be re-used by
+   As mentioned in Section 4.2, the DAG tunnel may be re-used by
    multiple ingress SR Policies.  This mechanism is used to support
-   acheiving multiple ingress nodes originated from the network, by way
+   achieving multiple ingress nodes originated from the network, by way
    of the controller binding and attaching the ingress SR Policies to a
    pre-existing DAG sharing the same intent and endpoints.
 
@@ -318,7 +319,19 @@ Table of Contents
 
    The controller signals the Junction Segment(s) to all downstream
    nodes, starting with the penultimate egress hop node(s) and working
-   upwards toward the ingress nodes.
+   upwards toward the ingress nodes.  The controller may perform
+   deployments in parallel provided there is no interdependency of
+   values between junction segments, and the controller does not update
+   the ingress until all deployments are deemed successful.
+
+   If a Junction Segment cannot be deployed to a node, the controller
+   SHOULD re-attempt the deployment up to a configurably defined maximum
+   number of retries.
+
+   Depending on local policy and implementation constraints, the
+   controller MAY execute a full rollback of the configuration, or it
+   MAY allow the partial deployment to proceed, provided that the TE
+   constraints continue to be satisfied.
 
    Junction Segment deployments are in the form of a unicast SR Policy
    with a single Candidate Path using protocols such as PCEP, BGP, or
@@ -332,20 +345,18 @@ Table of Contents
    value, it MUST wait to signal upstream Junction nodes about their
    Junction segments in their outgoing SID lists.  The BSID value MAY be
    a constant value globally, if assigned by PCE/Controller, or may be a
-   different value on each Junction Node whether it’s assigned by PCE/
-   Controller or the local Junction Node itself.
+   different value on each Junction Node whether it’s assigned by the
+   controller or the local Junction Node itself.
 
-   Each SR Policy contains one or more SID lists.  These SID lists must
-   include at least two segment identifiers: one SID for forwarding to
-   the downstream Junction node and one for the Junction Segment value
-   (BSID) of the downstream node.  For directly connected neighbors,
-   this may be the adjacency or node SID for the neighbor.  For Junction
-   nodes that are not directly connected, additional SIDs MAY be used to
-   steer the packet along an ECMP or non-ECMP path to the downstream
-   Junction node.  It is worth noting that if the SID list comprises of
-   only an Adjacency-SID and the Junction SID of the neighbor node, then
-   the dataplane packet contains only one SID on egress which is the
-   Junction SID of the neighboring node.
+   Each SR Policy contains one or more SID lists.  With the exception of
+   the penultimate node, these SID lists MUST include at least two
+   segment identifiers: one SID for forwarding to the downstream
+   Junction node and one for the Junction Segment value (BSID) of the
+   downstream node.  For directly connected neighbors, this may be the
+   adjacency or node SID for the neighbor.  For Junction nodes that are
+   not directly connected, additional SIDs MAY be used to steer the
+   packet along an ECMP or non-ECMP path to the downstream Junction
+   node.
 
 5.1.  Example
 
@@ -377,20 +388,21 @@ Table of Contents
    arbitrary metric (IGP, TE, Delay etc).
 
    Note there is a mesh between C, D, F and G of weight 5 per link.
-   Pruned represents an excluded link due to TE constraints.  In the
-   below, the terminology {u,v} represents a unidirectional link between
-   U and V.  The terminology Adj-SID-XY represents an adjacency SID from
-   X to Y.  Node-SID-X represents the node SID path to X.
+   Pruned represents an excluded link due to TE constraints (for
+   example, such as insufficient bandwidth).  In the below, the
+   terminology {U,V} represents a unidirectional link between U and V.
+   The terminology Adj-SID-XY represents an adjacency SID from X to Y.
+   Node-SID-X represents the node SID path to X.
 
-   A MPTE DAG is computed to contain nodes B,C,D,E,F,G with the links
-   {G, F} / {F, G} pruned.
+   An MPTE DAG is computed to contain nodes B,C,D,E,F,G with the links
+   {G,F} / {F,G} pruned.
 
    The below Junction Segments are deployed to the network realized with
    an SR Policy with a single Candidate Path containing multiple segment
    lists.  Note the following:
 
    *  When the DAG is computed, loops cannot exist.  Therefore, in the
-      above topology the links in direction {C, B} and {C,D} and {C,F}
+      above topology the links in direction {C,B} and {C,D} and {C,F}
       and {C,G} are chosen in the DAG.
 
    *  The path along {B,E,H} can be represented by a single Node SID.  A
@@ -409,8 +421,8 @@ Table of Contents
 
    *  The color on the ingress SR Policy still provides intent steering
       for ingress traffic, therefore SHOULD be unique to the color value
-      of the Junction segments comprising of the DAG to permit
-      globalized make-before-break behavior.
+      of the Junction segments comprising the DAG to permit global make-
+      before-break behavior.
 
 Junction Segment B:
   Color: 100
@@ -438,8 +450,8 @@ Junction Segment C:
 Junction Segment D:
   Color: 100
   BSID: BSID-D
-  SID List 2: [Adj-SID-DF, BSID-F]
-  SID List 3: [Adj-SID-DG, BSID-G]
+  SID List 1: [Adj-SID-DF, BSID-F]
+  SID List 2: [Adj-SID-DG, BSID-G]
 
 Then lastly, at ingress the SR Policy transport tunnel is configured with the following:
 
@@ -474,27 +486,20 @@ Ingress SR Policy (Using Junction Segments):
    cost flow-based forwarding across all egress SID lists associated
    with the Junction Segment.
 
-   As per [RFC9256] section 2.11, The fraction of the flows associated
+   As per [RFC9256] Section 2.11, The fraction of the flows associated
    with a given segment list is w/Sw, where w is the weight of the
    segment list and Sw is the sum of the weights of the segment lists.
    To exclude forwarding via a specific egress interface while
    preserving the forwarding structure, a weight value of zero is
    assigned to the corresponding segment list.
 
-7.  Constraints
-
-   When the controller computes the DAG, traffic engineering constraints
-   MUST be considered.  Links which violate the constraints are pruned
-   from the DAG.  Nodes which do not form the DAG are not notified with
-   any Junction segments.
-
-8.  Protection
+7.  Protection
 
    As described in [I-D.draft-kompella-teas-mpte], as there are multiple
    egress interfaces (SID Lists), the loss of one interface link does
    not result in traffic drops, as long as one egress interface (SID
    List) remains although congestion may occur.  For example, in
-   Figure 1 Node C can tolerate the lost of up to 3 egress links and
+   Figure 1 Node C can tolerate the loss of up to 3 egress links and
    traffic will still forward (potentially with congestion).
 
    If a Junction Node experiences a failure of all egress links
@@ -512,14 +517,13 @@ Ingress SR Policy (Using Junction Segments):
    only has 1 egress link.
 
    Link protection from an upstream Junction node to its downstream
-   Junction nodes can be achieved using existing TI-LFA
-   [I-D.draft-ietf-rtgwg-segment-routing-ti-lfa] mechanisms, applied per
-   egress SID List on each Junction Segment.  Since the top SID(s) in
-   each SID List identify the path to the next downstream Junction node,
-   TI-LFA is applicable.  Effectively, TI-LFA is used to protect traffic
-   between Junction Segments along a path within the DAG and is not
-   intended to protect traffic directed toward the DAG’s egress nodes or
-   the entire DAG.
+   Junction nodes can be achieved using existing TI-LFA [RFC9855]
+   mechanisms, applied per egress SID List on each Junction Segment.
+   Since the top SID(s) in each SID List identify the path to the next
+   downstream Junction node, TI-LFA is applicable.  Effectively, TI-LFA
+   is used to protect traffic between Junction Segments along a path
+   within the DAG and is not intended to protect traffic directed toward
+   the DAG’s egress nodes or the entire DAG.
 
    Local computation for node protection on an upstream Junction node is
    not feasible, because it lacks visibility into the DAG beyond the
@@ -527,9 +531,9 @@ Ingress SR Policy (Using Junction Segments):
    Segment.  A controller MAY be used to precompute backup SR Paths and
    signal these backup SID Lists to the upstream Junction segments.
 
-9.  Other considerations
+8.  Other considerations
 
-9.1.  Hierarchy
+8.1.  Hierarchy
 
    The use of Junction Segments to achieve a DAG can be used in
    hierarchical organization and sharing of DAGs between end-to-end
@@ -542,13 +546,13 @@ Ingress SR Policy (Using Junction Segments):
 
    Figure 2 is an example of two independent SR Policy Tunnels from
    Headend A and Headend B terminating on Egress X.  An instance of a
-   DAG with MID 100 can be configured between ABR-1 and the Egress X
-   node.  ABR-1 Junction Segment which ingresses the DAG has a Binding
-   Segment attached, for example BSID-100.  Therefore, the SID list on
-   Headend A and Headend B SID lists would contain the SR Path (ex:
-   Node-SID-ABR-1) to reach ABR 1 followed by BSID-100.  The instruction
-   set from each Headend to ABR 1 could also be another instance of a
-   DAG, either for independent use or shared.
+   DAG with MID 100 can be configured between area border routers (ABR)
+   ABR-1 and the Egress X node.  ABR-1 Junction Segment which ingresses
+   the DAG has a Binding Segment attached, for example BSID-100.
+   Therefore, the SID list on Headend A and Headend B SID lists would
+   contain the SR Path (ex: Node-SID-ABR-1) to reach ABR 1 followed by
+   BSID-100.  The instruction set from each Headend to ABR 1 could also
+   be another instance of a DAG, either for independent use or shared.
 
           -------------------------------------------------------------
           |                             |                             |
@@ -572,7 +576,7 @@ Ingress SR Policy (Using Junction Segments):
 
                              Figure 2 : Reusable DAG 100
 
-9.2.  Directly connected Junction nodes
+8.2.  Directly connected Junction nodes
 
    As described in the Operational section, all transit nodes in a DAG
    MAY be signaled with a Junction Segment.  Alternatively depending on
@@ -580,7 +584,7 @@ Ingress SR Policy (Using Junction Segments):
    be interconnected via an SR Path, with a SID list, where the SR Path
    itself may correspond to an ECMP or TE Path.
 
-9.3.  Broadcast links
+8.3.  Broadcast links
 
    SR networks abstract broadcast links with the use point to point
    adjacency segments identifying each neighbor.  Specifying a DAG which
@@ -589,9 +593,9 @@ Ingress SR Policy (Using Junction Segments):
    The outgoing SID List of the Junction Segment simply contains the
    adjacency SID of the next-hop neighbor on the broadcast link.
 
-10.  Optimization
+9.  Optimization
 
-10.1.  Local optimization
+9.1.  Local optimization
 
    Local optimization refers to updates applied to a single Junction
    node that can be performed without requiring coordinated updates
@@ -629,7 +633,7 @@ Ingress SR Policy (Using Junction Segments):
 
    For example:
 
-   *  Cleaning up a upstream disconnected sub-graph following the
+   *  Cleaning up an upstream disconnected sub-graph following the
       removal of an upstream SID list (BSID is no longer used)
 
    It is important to note that local optimization differs from global
@@ -667,10 +671,10 @@ Ingress SR Policy (Using Junction Segments):
    updating the SID list of the existing candidate path, rather than
    introducing new candidate paths.
 
-10.1.1.  Local optimization Example
+9.1.1.  Local optimization Example
 
    The following examples use the topology example specified in Figure 1
-   and section 5.1.
+   and Section 5.1.
 
    Example 1 – Simple SID list update
 
@@ -687,7 +691,7 @@ Ingress SR Policy (Using Junction Segments):
 
    *  A delete is sent to remove Junction Segment B
 
-10.2.  Global optimization
+9.2.  Global optimization
 
    Global optimization of a DAG requires coordinated updates across all
    participating Junction Nodes.  This process follows a make-before-
@@ -700,7 +704,7 @@ Ingress SR Policy (Using Junction Segments):
    break considerations necessitates deploying new Junction segments.
    This, in turn, requires the instantiation of new SR Policies with
    unique Color values.  These new SR Policies are deployed to all
-   Junction Nodes participating in the updated DAG instance and must be
+   Junction Nodes participating in the updated DAG instance and MUST be
    associated with distinct Binding SID values from those of the
    existing instance.
 
@@ -741,10 +745,10 @@ Ingress SR Policy (Using Junction Segments):
    Junction Nodes are modified in a coordinated and consistent manner
    before activating the new DAG on the ingress.  If the update process
    fails partially, the controller SHOULD roll back the new deployment
-   and retain the existing stable DAG version and it's Junction Segments
+   and retain the existing stable DAG version and its Junction Segments
    to avoid inconsistencies in forwarding behavior.
 
-10.2.1.  Global Optimization Example
+9.2.1.  Global Optimization Example
 
        +------+      +------+       +------+     +------+
        |      |      |      |       |      |     |      |
@@ -841,29 +845,28 @@ Ingress SR Policy (Using Junction Segments):
      Color: 2000
      BSID: BSID-X1
 
-11.  Manageability Considerations
+10.  Manageability Considerations
 
-11.1.  Control of Function through Configuration and Policy
+10.1.  Control of Function through Configuration and Policy
 
-   This document currently proposes using the existing SR Policy
-   construct with a color value representing the DAG MID and version.
-   Since SR Policy color value is originally intended for ingress
-   traffic steering on matched routers, a deployment MUST allocate a
-   color range which will be used for MPTE and MUST NOT be assigned to
-   any advertised routes in the network.
+   This document describes using the existing SR Policy construct with a
+   color value representing the DAG MID and version.  Since SR Policy
+   color value is originally intended for ingress traffic steering on
+   matched routers, a deployment MUST allocate a color range which will
+   be used for MPTE tunnels.
 
-11.2.  Information and Data Models, e.g., MIB modules
+10.2.  Information and Data Models, e.g., MIB modules
 
    TODO
 
-11.3.  Liveness Detection and Monitoring
+10.3.  Liveness Detection and Monitoring
 
    Liveness detection for an MPTE SR deployment covers two independent
    scopes: the underlying IP link topology and the DAG tunnel itself.
 
-11.3.1.  Topology
+10.3.1.  Topology
 
-   Seamless BFD (S-BFD)[RFC7880] is RECOMMENDED to quickly detect
+   Seamless BFD (S-BFD) ([RFC7880]) is RECOMMENDED to quickly detect
    failures of individual IP links that comprise the topology over which
    the DAG is constructed.  S-BFD sessions run on each link in the
    topology so that a node can quickly determine whether a directly
@@ -874,7 +877,7 @@ Ingress SR Policy (Using Junction Segments):
    topology would continue to react to changes in the topology and can
    determine whether corrective action is necessary.
 
-11.3.2.  DAG Tunnel
+10.3.2.  DAG Tunnel
 
    Liveness detection of the DAG tunnel itself has more considerations
    than link-level detection as it must verify end-to-end forwarding
@@ -884,15 +887,15 @@ Ingress SR Policy (Using Junction Segments):
 
    S-BFD initiated from the headend of the ingress SR Policy to the DAG
    endpoint(s) can verify reachability to the first set of downstream
-   Junction Nodes.  However, due to weighted ECMP behavior at each
-   Junction Node, headend-originated S-BFD can be insufficient to
-   exercise all possible forwarding paths that the DAG tunnel may take
-   from the ingress node toward the egress node(s) unless it generates a
-   non-determistic amount of packets with sufficient entropy to
-   excercise all possible egress forwarding.  A single S-BFD probe from
-   the headend will follow a hashed path through the DAG and cannot
-   guarantee that every egress SID list on every Junction Node along the
-   DAG is functional.
+   Junction Nodes and a hashed path to the egress node.  However, due to
+   weighted ECMP behavior at each Junction Node, headend-originated
+   S-BFD can be insufficient to exercise all possible forwarding paths
+   that the DAG tunnel may take from the ingress node toward the egress
+   node(s) unless it generates a non-deterministic amount of packets
+   with sufficient entropy to exercise all possible egress forwarding.
+   A single S-BFD probe from the headend will follow a hashed path
+   through the DAG and cannot guarantee that every egress SID list on
+   every Junction Node along the DAG is functional.
 
    It is RECOMMENDED each egress SID list of each Junction Segment runs
    its own S-BFD session to verify that the complete forwarding path,
@@ -907,7 +910,7 @@ Ingress SR Policy (Using Junction Segments):
    independently monitored, regardless of weight ECMP hashing and
    distribution.
 
-   The egress node(s) will recieve many S-BFD echo packets, one for each
+   The egress node(s) will receive many S-BFD echo packets, one for each
    segment list on each Junction Node for each DAG.
 
    Upon failure of any segment list in the DAG, the controller SHOULD
@@ -915,7 +918,7 @@ Ingress SR Policy (Using Junction Segments):
    performing other local or global optimizations as described in
    Section 10.
 
-11.4.  Verifying Correct Operation
+10.4.  Verifying Correct Operation
 
    OAM Ping and Traceroute ([RFC8287], [RFC9259]) are useful functions
    to verify and monitor operations.
@@ -969,25 +972,26 @@ Ingress SR Policy (Using Junction Segments):
        to an operator that every forwarding path within the DAG is
        functioning correctly and what measurements are present.
 
-11.5.  Requirements on Other Protocols and Functional Components
+10.5.  Requirements on Other Protocols and Functional Components
+
+   There are currently no new requirements on other protocols or
+   functional components.
+
+10.6.  Impact on Network Operation
 
    TODO
 
-11.6.  Impact on Network Operation
+11.  Security Considerations
 
    TODO
 
-12.  Security Considerations
-
-   TODO
-
-13.  IANA Considerations
+12.  IANA Considerations
 
    None at this time
 
-14.  References
+13.  References
 
-14.1.  Normative References
+13.1.  Normative References
 
    [I-D.draft-ietf-idr-bgp-ls-sr-policy]
               Previdi, S., Talaulikar, K., Dong, J., Gredler, H., and J.
@@ -1005,15 +1009,6 @@ Ingress SR Policy (Using Junction Segments):
               <https://datatracker.ietf.org/doc/html/draft-ietf-idr-
               segment-routing-te-policy-26>.
 
-   [I-D.draft-ietf-rtgwg-segment-routing-ti-lfa]
-              Bashandy, A., Litkowski, S., Filsfils, C., Francois, P.,
-              Decraene, B., and D. Voyer, "Topology Independent Fast
-              Reroute using Segment Routing", Work in Progress,
-              Internet-Draft, draft-ietf-rtgwg-segment-routing-ti-lfa-
-              21, 12 February 2025,
-              <https://datatracker.ietf.org/doc/html/draft-ietf-rtgwg-
-              segment-routing-ti-lfa-21>.
-
    [I-D.draft-kompella-teas-mpte]
               Kompella, K., Jalil, L., Khaddam, M., and A. Smith,
               "Multipath Traffic Engineering", Work in Progress,
@@ -1030,12 +1025,6 @@ Ingress SR Policy (Using Junction Segments):
               Element (PCE) Communication Protocol (PCEP)", RFC 5440,
               DOI 10.17487/RFC5440, March 2009,
               <https://www.rfc-editor.org/rfc/rfc5440>.
-
-   [RFC7752]  Gredler, H., Ed., Medved, J., Previdi, S., Farrel, A., and
-              S. Ray, "North-Bound Distribution of Link-State and
-              Traffic Engineering (TE) Information Using BGP", RFC 7752,
-              DOI 10.17487/RFC7752, March 2016,
-              <https://www.rfc-editor.org/rfc/rfc7752>.
 
    [RFC7880]  Pignataro, C., Ward, D., Akiya, N., Bhatia, M., and S.
               Pallagatti, "Seamless Bidirectional Forwarding Detection
@@ -1075,7 +1064,18 @@ Ingress SR Policy (Using Junction Segments):
               DOI 10.17487/RFC9259, June 2022,
               <https://www.rfc-editor.org/rfc/rfc9259>.
 
-14.2.  Informative References
+   [RFC9552]  Talaulikar, K., Ed., "Distribution of Link-State and
+              Traffic Engineering Information Using BGP", RFC 9552,
+              DOI 10.17487/RFC9552, December 2023,
+              <https://www.rfc-editor.org/rfc/rfc9552>.
+
+   [RFC9855]  Bashandy, A., Litkowski, S., Filsfils, C., Francois, P.,
+              Decraene, B., and D. Voyer, "Topology Independent Fast
+              Reroute Using Segment Routing", RFC 9855,
+              DOI 10.17487/RFC9855, October 2025,
+              <https://www.rfc-editor.org/rfc/rfc9855>.
+
+13.2.  Informative References
 
    [RFC9524]  Voyer, D., Ed., Filsfils, C., Parekh, R., Bidgoli, H., and
               Z. Zhang, "Segment Routing Replication for Multipoint
@@ -1107,8 +1107,3 @@ Authors' Addresses
    Shaofu Peng
    ZTE Corporation
    Email: peng.shaofu@zte.com.cn
-
-
-   Zafar Ali
-   Cisco Systems, Inc.
-   Email: zali@cisco.com
