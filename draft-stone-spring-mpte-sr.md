@@ -57,16 +57,14 @@ This document describes a mechanism to achieve Multipath Traffic Engineering for
 
 # Introduction
 
-The document {{I-D.draft-kompella-teas-mpte}} introduces a multipath traffic engineering concept that combines the benefits of both Equal-Cost Multipath (ECMP)
+{{I-D.draft-kompella-teas-mpte}} introduces a multipath traffic engineering concept that combines the benefits of both Equal-Cost Multipath (ECMP)
 forwarding and traffic-engineered paths. This approach uses a Directed Acyclic Graph (DAG) based forwarding mechanism, with the DAG signaled to participating network nodes.
 The concept is to move beyond simple ECMP paths by incorporating both ECMP and non-ECMP paths while still adhering to traffic engineering constraints, to provide
 added resiliency while also permitting better usage of link bandwidth.
 
-{{I-D.draft-kompella-teas-mpte}} outlines the architecture design which can be applied to both distributed and centralized signaling for various tunnel types,
-including MPLS, IP, and others while leaving the specific details of each out of scope.
+This document discusses a centralized computation and signaling mechanism for SR-based networks.
 
-This document proposes and discusses a centralized computation and signaling mechanism for SR-based networks.
-This document does not define a new protocol or propose new extensions to the segment routing protocol constructs.
+This document does not propose new extensions to the Segment Routing protocol constructs.
 
 The document assumes the reader is familiar with {{RFC8402}}, {{RFC9256}}, and {{I-D.draft-kompella-teas-mpte}}.
 
@@ -86,17 +84,14 @@ PCEP, BGP, BGP-LS, or NETCONF protocols themselves.
 
 # MPTE vs multiple SID lists
 
-It's important to recognize the SR Policy information model supports multiple SID lists, effectively encoding multiple unique paths on a tunnel at the ingress.
-A Directed Acyclic Graph (DAG) can be represented as a collection of individual paths, each of which can be programmed as a separate SID list within an SR Policy Candidate Path.
-However, depending on the graph topology, the number of unique paths to encode can grow significantly. Additionally, in traditional SID list approaches, hashing is performed only
-at the ingress, rather than at each downstream node. In contrast, a DAG-based mechanism may allow better traffic distribution or localized tuning based on localized weight changes.
-Finally, the maximum segment depth (MSD) may need to be considered for long paths that deviate significantly from the shortest path.
+It's worth recognizing the SR Policy information model supports encoding multiple paths on a tunnel at the ingress, by using multiple SID lists within
+a Candidate Path. A Directed Acyclic Graph (DAG) can therefore be expressed as a collection of paths, each programmed as a separate
+ingress SID list. However, this ingress only encoding has trade offs such as the number of paths can grow significantly with graph size, weighted flow
+hashing is performed only at the ingress (not at each downstream node), and the maximum segment depth (MSD) constrains long paths that deviate from the shortest path.
 
-In comparison, encoding a DAG’s forwarding instructions across the participating Junction nodes reduces the number of individual SID lists at the ingress,
-but at the cost of increasing state in the network. While source-based routing aims to reduce network state,
-there is a trade-off between the volume and length of SID lists versus distributing that state throughout the network to achieve multipath traffic engineering use cases.
-
-The choice between using multiple ingress segment lists or the MPTE DAG-based distribution mechanism depends on the traffic engineering requirements, overall network design, link/path metrics, and the DAG’s structure.
+Encoding the DAG's forwarding instructions across the participating Junction nodes reduces the number of ingress SID lists and allows
+per-node weight tuning, at the cost of additional state in the network. The choice between ingress-only segment lists and the MPTE
+DAG based mechanism depends on the traffic engineering requirements, network design, link/path metrics, and the DAG structure.
 
 # MPTE concepts with Segment Routing
 
@@ -104,8 +99,8 @@ This document proposes the below concepts for applying MPTE in an SR environment
 
 ## MPTED
 
-The MPTED is managed by a centralized controller, such as a PCE acting as the MC. Topology discovery is performed using BGP-LS {{RFC9552}}, while transport control plane signaling
-is achieved through controller-oriented protocols such as PCEP {{RFC5440}}, {{RFC8231}} and BGP/BGP-LS {{I-D.draft-ietf-idr-segment-routing-te-policy}}, {{I-D.draft-ietf-idr-bgp-ls-sr-policy}}.
+The MPTED is managed by a centralized controller, such as a Path Computation Element (PCE) acting as the MC. Topology discovery is performed using BGP-LS {{RFC9552}}, while transport control plane signaling
+is achieved through controller-oriented protocols such as Path Computation Element Protocol (PCEP) {{RFC5440}}, {{RFC8231}} and BGP/BGP-LS {{I-D.draft-ietf-idr-segment-routing-te-policy}}, {{I-D.draft-ietf-idr-bgp-ls-sr-policy}}.
 The MC computes, manages, and distributes all forwarding information to the nodes participating in the MPTE DAG, which form the MPTED.
 
 {{I-D.draft-kompella-teas-mpte}} specifies that a node in the MPTED is identified by its IPv6 loopback address. However, this document allows the use of a 32-bit dotted quad router ID as an
@@ -115,25 +110,27 @@ As per {{I-D.draft-kompella-teas-mpte}}, the controller acting as the MC is resp
 
 ## Junction Segment
 
-The concept of a Junction Segment is introduced to describe the signaling and forwarding behavior of a Junction node in an SR network.
+The concept of a Junction Segment is introduced to describe the signaling and forwarding behavior of a Junction node in an SR network:
 
-It’s worth noting that the architectural concept of a Junction Segment is similar to a Replication Segment {{RFC9524}}, but it performs forwarding based on load balancing rather than replication.
+A junction segment is:
 
-A Junction Segment is installed on nodes identified as Junction Nodes, as defined in {{I-D.draft-kompella-teas-mpte}}.
+- realized using SR Policy construct with a single Candidate Path, a Binding SID {{RFC9256}} and one or more segment lists to one or more downstream nodes.
 
-This document version proposes that a Junction Segment is realized using the existing SR Policy construct with a single Candidate Path and a Binding SID.
+- similar to a Replication Segment {{RFC9524}}, but performs forwarding based on load balancing rather than replication.
 
-A Binding Segment is attached to an SR Policy Candidate Path with one or more SID Lists, each representing an outgoing link or a segment routed path to a downstream node with the
-top SID identifying the outgoing interface of the link.
+- installed on nodes identified as Junction Nodes, as defined in {{I-D.draft-kompella-teas-mpte}}.
 
-Since a Junction Segment may egress to multiple downstream nodes, the endpoint of the corresponding SR Policy MUST be set to the null value (0.0.0.0 for IPv4, :: for IPv6).
+- combined with one or more Junction segments across a segment routed topology domain to form an MPTE DAG tunnel.
+
+Since a Junction Segment may egress to multiple downstream nodes, the endpoint of the corresponding SR Policy can be set to the null value (0.0.0.0 for IPv4, :: for IPv6).
 Therefore, a Junction segment is identified by its <headend, color> attribute.
 
-This document assumes that the color value is mapped to the <MID, Version> tuple and is tracked by the controller.
+The color value is mapped to the <MID, Version> tuple and is tracked by the controller.
 
 It is RECOMMENDED that a globally consistent color value be used across all Junction Segments that belong to a single DAG instance or that serve a common DAG intent.
 
-A DAG may consist of multiple Junction Segments that collectively represent a single DAG tunnel. This MPTE tunnel is used by one or many SR Policies instantiated on one or many ingress nodes.
+The MPTE tunnel is used by one or many SR Policies instantiated on one or many ingress nodes.
+
 A Junction Segment may be used by multiple ingress SR Policies, provided that the subgraph it forwards over is fully shared by all SR Policies using it, including the set of their respective egress nodes.
 
 The ingress SR Policy is responsible for initiating traffic steering into the DAG and is associated with a color value representing service intent. The junction segment, on the other hand,
@@ -152,25 +149,11 @@ the Junction Segment MAY include a SID list entry that identifies multiple outgo
 ingress signaling as a single Binding Segment attached to an SR Policy is used. All upstream originated traffic sent to a downstream Junction Node
 uses the same, single Junction Segment value which is a Binding Segment.
 
-
-## MPTE SR Policy - Tunnel with multiple ingress/egress
-
-{{I-D.draft-kompella-teas-mpte}} specifies that an MPTE Tunnel could have multiple ingress and/or multiple egress nodes. Currently, the SR Policy architecture defines an SR Policy using a {Headend, Endpoint, Color} tuple,
-where the Endpoint may be set to the null value (0.0.0.0), indicating multiple destinations.
-
-For controller-initiated tunnels, the intended ingress and egress node(s) can be provided to the controller based on implementation specific methods. These may be signaled to the network as
-multiple tunnels to support multi-ingress scenarios. Each tunnel MAY use a null Endpoint value to support multi-egress.
-
-However, MPTE SR Policies that are originated or defined by network devices are typically limited to a single ingress and a single egress endpoint unless protocols such as PCEP or NETCONF are extended
-to encode additional intended destination node(s) for controller-based path computation.
-
-As mentioned in Section 4.2, the DAG tunnel may be re-used by multiple ingress SR Policies. This mechanism is used to support achieving multiple ingress nodes originated from the network,
-by way of the controller binding and attaching the ingress SR Policies to a pre-existing DAG sharing the same intent and endpoints.
-
-
 # Operation
 
-A path computation request or tunnel delegation notification is sent to the controller, specifying one or more ingress and egress nodes, along with constraints or SLA policy information.
+## General
+
+A path computation request or tunnel delegation notification is sent to the controller, specifying one or more ingress and egress nodes, along with constraints or service level agreement policy information.
 This request may originate from an ingress router in the network or be provisioned directly via an API to the controller.
 This tunnel computation request or delegation pertains to an instance of an MPTE Tunnel achieved with the ingress SR Policy.
 
@@ -185,20 +168,262 @@ If a Junction Segment cannot be deployed to a node, the controller SHOULD re-att
 Depending on local policy and implementation constraints, the controller MAY execute a full rollback of the configuration, or it MAY allow the
 partial deployment to proceed, provided that the TE constraints continue to be satisfied.
 
-Junction Segment deployments are in the form of a unicast SR Policy with a single Candidate Path using protocols such as PCEP, BGP, or NETCONF.
-The optional use of an MPTED Reflector is protocol specific. For example, PCEP sessions terminate on each
-and every Junction node in the topology and BGP may do the same or make use of a BGP Route Reflector.
+Junction Segments are deployed as a unicast SR Policy with a single Candidate Path using protocols such as PCEP, BGP, or NETCONF.
 
 A BSID MUST be explicitly requested or signaled to the Junction node for assignment. If the controller opts for local node assigned value, it MUST wait to signal
 upstream Junction nodes about their Junction segments in their outgoing SID lists. The BSID value MAY be a constant value globally, if assigned by PCE/Controller,
 or may be a different value on each Junction Node whether it’s assigned by the controller or the local Junction Node itself.
 
-Each SR Policy contains one or more SID lists. With the exception of the penultimate node, these SID lists MUST
+Each SR Policy contains one or more SID lists. With the exception of the penultimate node, these SID lists
 include at least two segment identifiers: one SID for forwarding to the downstream Junction node and one for the Junction Segment value (BSID) of the downstream node.
 For directly connected neighbors, this may be the adjacency or node SID for the neighbor. For Junction nodes that are not directly connected,
 additional SIDs MAY be used to steer the packet along an ECMP or non-ECMP path to the downstream Junction node.
 
-## Example
+Appendix A provides an example topology and resulting Junction segments.
+
+## Tunnel with multiple ingress/egress
+
+{{I-D.draft-kompella-teas-mpte}} specifies that an MPTE Tunnel could have multiple ingress and/or multiple egress nodes.
+For controller-initiated tunnels, the intended ingress and egress node(s) can be provided to the controller based on implementation specific methods. These may be signaled to the network as
+multiple tunnels to support multi-ingress scenarios. Each tunnel can use a null Endpoint value to support multi-egress.
+
+MPTE SR Policies that are originated or defined by network devices are typically limited to a single ingress and a single egress endpoint unless protocols such as PCEP or NETCONF are extended
+to encode additional intended destination node(s) for controller-based path computation.
+
+As mentioned in Section 4.2, the DAG tunnel may be re-used by multiple ingress SR Policies. This mechanism is used to support achieving multiple ingress nodes originated from the network,
+by way of the controller binding and attaching the ingress SR Policies to a pre-existing DAG sharing the same intent and endpoints.
+
+## Load-balancing
+
+When a packet with the BSID assigned to the Junction Segment is received at its Junction Node,
+the node performs weighted non-equal cost flow-based forwarding across all egress SID lists associated with the Junction Segment.
+
+As per {{RFC9256}} Section 2.11, The fraction of the flows associated with a given segment list is w/Sw, where w is the weight of the segment
+list and Sw is the sum of the weights of the segment lists. To exclude forwarding via a specific egress interface
+while preserving the forwarding structure, a weight value of zero is assigned to the corresponding segment list.
+
+## Protection
+
+As described in {{I-D.draft-kompella-teas-mpte}}, as there are multiple egress interfaces (SID Lists), the loss of one interface link does not result in traffic drops,
+as long as one egress interface (SID List) remains although congestion may occur. For example, in the topology shown in Appendix A, Node C can
+tolerate the loss of up to 3 egress links and traffic will still forward (potentially with congestion).
+
+If a Junction Node experiences a failure of all egress links (including any protection for those links), it will initially
+blackhole traffic until upstream nodes are notified by the controller to remove the failed Junction node from the DAG.
+
+To reduce the risk of outages caused by single link failure, the controller MAY optimize DAG deployment by assigning
+Junction Segments only to nodes with more than one egress segment list. In other words, if a node in the DAG has only one egress interface,
+it functions solely as a transit node for an upstream Junction Segment and does not receive a Junction Segment itself.
+For example, in the topology shown in Appendix A, Node E is omitted from receiving a Junction Segment as it only has 1 egress link.
+
+Link protection from an upstream Junction node to its downstream Junction nodes can be achieved using existing Topology Independent Loop-Free Alternative (TI-LFA) {{RFC9855}} mechanisms,
+applied per egress SID List on each Junction Segment. Since the top SID(s) in each SID List identify the path to the
+next downstream Junction node, TI-LFA is applicable. Effectively, TI-LFA is used to protect traffic between Junction Segments along a path
+within the DAG and is not intended to protect traffic directed toward the DAG’s egress nodes or the entire DAG.
+
+Local computation for node protection on an upstream Junction node is not feasible, because it lacks visibility into the
+DAG beyond the immediate downstream Junction node as it only knows the next Junction Segment.
+A controller MAY be used to precompute backup SR Paths and signal these backup SID Lists to the upstream Junction segments.
+
+## Hierarchy
+
+The use of Junction Segments to achieve a DAG can be used in hierarchical organization and sharing of DAGs between end-to-end tunnels.
+
+For instance, in a multi-area or multi-instance topology, one or more shared DAGs may be created per area, connecting the border ingress node(s) and egress node(s).
+These DAGs can then be stitched together for use in an end-to-end SR tunnel.
+
+Figure 1 is an example of two independent SR Policy Tunnels from Headend A and Headend B terminating on Egress X.
+An instance of a DAG with MID 100 can be configured between area border routers (ABR)
+ABR-1 and the Egress X node. ABR-1 Junction Segment which ingresses the DAG has a Binding Segment attached, for
+example BSID-100. Therefore, the SID list on Headend A and Headend B SID lists would contain
+the SR Path (ex: Node-SID-ABR-1) to reach ABR 1 followed by BSID-100. The instruction set from each Headend to ABR 1
+could also be another instance of a DAG, either for independent use or shared.
+
+~~~
+          -------------------------------------------------------------
+          |                             |                             |
+          |                             |                             |
+     +-------+                          |             ---\            |
+     |       |--\     Path 1            |         ---/  | ---\        |
+     |Headend|   ----\                  |     ---/   -----\   --\     |
+     |   A   |         ----\         +-----+-/   ---/      ---\  --+------+
+     +-------+              ----\    |     |  --/   -------|   --  |      |
+          |                      --- | ABR |  -------------------  |Egress|
+          |                      --- |  1  |        |DAG-100       |  X   |
+     +-------+              ----/    +-----+ --\    |        ----- +------+
+     |       |        -----/            |  -\   ----\-------/     --  |
+     |Headend|   ----/                  |    --\     ---       --/    |
+     |   B   |--/     Path 2            |       -\   |      --/       |
+     +-------+                          |         --\    --/          |
+          |                             |            ---/             |
+          |                             |                             |
+          -------------------------------------------------------------
+                   Domain/Area 1                  Domain/Area 2
+
+                             Figure 1 : Reusable DAG 100
+~~~
+
+
+## Directly connected Junction nodes
+
+As described in the Operational section, all transit nodes in a DAG MAY be signaled with a Junction Segment.
+Alternatively depending on the topological graph and TE requirements, two Junction segments may be interconnected via an
+SR Path, with a SID list, where the SR Path itself may
+correspond to an ECMP or TE Path.
+
+
+# Optimization
+
+## Local optimization
+
+Local optimization refers to updates applied to a single Junction node that can be performed without requiring
+coordinated updates across multiple nodes in the DAG. These operations are considered safe when they do not
+introduce forwarding loops or cause reachability interruptions within the DAG.
+
+Examples of local optimizations include:
+
+- Manipulating the weight distribution of the outgoing SID lists
+- Replacing an existing SID list with a more optimal one (e.g. using a new adjacency SID or updated SR path to the next Junction node).
+- Adding a new SID list toward an egress node that is not itself a Junction node.
+- Removing a SID list, provided that at least one other outgoing SID list remains active.
+- Adding a new SID list to a Junction node that connects to a new downstream sub-graph which is not yet connected to the DAG structure.
+
+While these operations are scoped to a single node, their correct application may still require awareness of the surrounding DAG structure
+to avoid introducing loops or reachability issues. For instance, the addition of a new SID list may require confirmation that the new sub-graph
+is not already part of the DAG, or that it connects loop free.
+
+Local optimizations may also be chained in sequence across multiple nodes. When each step maintains loop free and reachable properties,
+such a chain of updates is still considered local in nature.
+
+For example:
+
+- Cleaning up an upstream disconnected sub-graph following the removal of an upstream SID list (BSID is no longer used)
+
+It is important to note that local optimization differs from global optimization in that it does not require versioning or re-signaling of the entire DAG structure.
+
+Since a Junction Segment is realized via an SR Policy, the controller leverages existing protocol mechanisms to update a Junction segment forwarding
+instructions, as the Junction Segment itself is represented as a candidate path within the SR Policy. When updating an existing candidate path,
+the binding SID MUST NOT change, as doing so would cause traffic using that binding SID to drop until upstream consumers are updated.
+Such a change should instead be treated as a global optimization, not a local one.
+
+Multiple candidate paths could be used to support more comprehensive local optimizations. However, caution is required in how the MPTED version
+is encoded and how version increments are signaled, since candidate paths are signaled within the context of the SR Policy.
+
+If the same color value is reused and a new candidate path is deployed, the new candidate path will not be installed in the forwarding plane
+until the existing one is removed, as only one candidate path may be active per SR Policy. This operation may not be hitless, depending on hardware implementation.
+
+Alternatively, if a different color value is used, the new candidate path may be allowed to go active. However, it will still fail to do so since it should be using
+the same binding SID as the existing candidate path. This results in a collision, rendering the new path ineligible, and may also violate
+protocol constraints that prohibit such configurations.
+
+Therefore, it is RECOMMENDED that local optimization be performed by updating the SID list of the existing candidate path, rather than introducing new candidate paths.
+
+Appendix B provides examples of local optimization.
+
+## Global optimization
+
+Global optimization of a DAG requires coordinated updates across all participating Junction Nodes.
+This process follows a make-before-break model, where a new version of the DAG is deployed alongside the existing one.
+The ingress SR Policy (or policies) is the last element to be updated.
+
+Since the Color field of an SR Policy indicates DAG membership, and is managed by the controller, global optimization
+with make-before-break considerations necessitates deploying new Junction segments. This, in turn, requires the instantiation
+of new SR Policies with unique Color values. These new SR Policies are deployed to all Junction Nodes participating in the
+updated DAG instance and MUST be associated with distinct Binding SID values from those of the existing instance.
+
+To minimize version churn and both color and label consumption, it is RECOMMENDED that controllers limit the number of
+concurrently deployed DAG instances for the same tunnel. Under normal conditions, only a single active
+DAG version should exist. During transitions, at most two versions (the current and the new one) should be present. Color and label values may be reused once globally released.
+
+The Binding SID associated with a DAG instance MUST remain constant during local optimizations, but MUST change during global optimizations to avoid the risk of routing loops. Therefore, in the example
+above, if a Junction Node is participating in DAG #1, version #1 continues to use one binding SID value and version #2 is using a distinct binding SID value on each Junction node.
+
+Once all Junction segments are deployed to all Junction nodes, the ingress node is updated with new SID lists referencing the Binding SIDs of the new Junction segments downstream.
+
+The Color field on ingress nodes is critical for traffic steering and therefore MUST remain constant during global optimizations. In contrast, Color values used on Junction Nodes
+MAY be reused or encoded to reflect DAG membership or instance mappings. Similarly, the binding SID on the ingress SR Policy also remains constant.
+
+The controller tracks the Color values and their corresponding usage for DAG ID and version. For example:
+
+- Color value 500 – DAG #1 – Version #1
+- Color value 501 – DAG #2 – Version #1
+- Color value 502 – DAG #1 – Version #2
+
+When performing global changes, controllers SHOULD ensure that all Junction Nodes are modified in a coordinated and consistent manner before activating the new DAG on the ingress.
+If the update process fails partially, the controller SHOULD roll back the new deployment and retain the existing
+stable DAG version and its Junction Segments to avoid inconsistencies in forwarding behavior.
+
+Appendix C provides an example of global optimization.
+
+# Manageability Considerations
+
+## Control of Function through Configuration and Policy
+
+This document describes using the existing SR Policy construct with a color value representing the DAG MID and version.
+Since SR Policy color value is originally intended for ingress traffic
+steering on matched routers, a deployment MUST allocate a color range which will be used for MPTE tunnels.
+
+## Information and Data Models, e.g., MIB modules
+
+TODO
+
+## Liveness Detection and Monitoring
+
+Liveness detection for an MPTE SR deployment has two scopes: the underlying IP links and the DAG tunnel itself.
+
+### Topology
+
+Seamless BFD (S-BFD) {{RFC7880}} is RECOMMENDED on each IP link to quickly detect link failures in the underlying topology. When a link
+goes down, any tunnel S-BFD session that traverses the link will also fail (see the next section). The controller tracks IGP topology changes
+and takes corrective action when necessary.
+
+### DAG Tunnel
+
+Liveness detection of the DAG tunnel must verify end-to-end forwarding across all Junction Nodes and the weighted forwarding performed
+by each Junction Segment.
+
+A single S-BFD session from the ingress headend to the DAG endpoint(s) follows one hashed path through the DAG. It cannot verify that every egress SID list on every Junction Node is functional.
+
+Therefore, it is RECOMMENDED that each egress SID list of each Junction Segment run its own S-BFD session to the next downstream node.
+On session failure:
+
+- The affected SID list is marked inactive and removed from the weighted ECMP set.
+- If a Junction Segment has no active egress SID lists remaining, the Junction Segment becomes inactive, which in turn fails any
+  upstream S-BFD sessions that use it.
+
+This per-Junction, per-SID-list approach monitors every forwarding segment of the DAG independently of hashing.
+
+As a result, an egress node may receive many S-BFD packets, one per SID list, per Junction Node, per DAG.
+
+## Verifying Correct Operation
+
+This section discusses OAM for SR-MPLS ({{RFC8287}}). Applicability to SRv6 ({{RFC9259}}) is to be covered in a future revision.
+
+As with S-BFD in Section 10.3.2, a single OAM probe from the ingress follows only one hashed path through the DAG and does not exercise every egress SID list on every Junction Node.
+
+A controller can collect ping and traceroute results on a per-Junction, per-SID-list basis and aggregate them into a holistic view of the DAG. Each probe targets the path encoded in that SID list, terminating at the next downstream Junction Node or DAG egress node, so that every forwarding segment is verified independently of upstream hashing. The controller may request results on-demand or receive them periodically. The frequency in which to run OAM is deployment specific.
+
+Because these tests run independently and not necessarily at the same instant, the aggregated view may contain timing skew between individual measurements. Multiple samples per test are RECOMMENDED.
+
+## Requirements on Other Protocols and Functional Components
+
+There are currently no new requirements on other protocols or functional components.
+
+## Impact on Network Operation
+
+TODO
+
+# Security Considerations
+
+TODO
+
+# IANA Considerations
+
+None at this time
+
+--- back
+
+# DAG Example
 
 ~~~
                   +------+       +------+
@@ -221,11 +446,11 @@ additional SIDs MAY be used to steer the packet along an ECMP or non-ECMP path t
                  |      |       |      |
                  +------+       +------+
 
-          Figure 1 : Example Topology to apply DAG
+          Figure 2 : Example Topology to apply DAG
 
 ~~~
 
-Figure 1 presents a sample topology for one ingress and one egress MPTE Tunnel established as an SR Policy. The MPTE tunnel is from A to H.
+Figure 2 above presents a sample topology for one ingress and one egress MPTE Tunnel established as an SR Policy. The MPTE tunnel is from A to H.
 The figure presents the bi-directional link weights for an arbitrary metric (IGP, TE, Delay etc).
 
 Note there is a mesh between C, D, F and G of weight 5 per link. Pruned represents an excluded link due to TE constraints (for example, such as insufficient bandwidth).
@@ -237,11 +462,11 @@ The below Junction Segments are deployed to the network realized with an SR Poli
 
 - When the DAG is computed, loops cannot exist. Therefore, in the above topology the links in direction {C,B} and {C,D} and {C,F} and {C,G} are chosen in the DAG.
 
-- The path along {B,E,H} can be represented by a single Node SID. A Junction on node E is not required. Junction Segment B may also be omitted (as per Section 8 below) but is utilized here for example purposes.
+- The path along {B,E,H} can be represented by a single Node SID. A Junction on node E is not required. Junction Segment B may also be omitted (as described in Section 5.3) but is utilized here for example purposes.
 
-- Junction F is described below, but an optimization could be performed to exclude Junction F as it only has one egress link (see Section 8 below).
+- Junction F is described below, but an optimization could be performed to exclude Junction F as it only has one egress link (see Section 5.3).
 
-- In practice the Binding Segments MAY be all the same value. This example describes different BSID values for readability.
+- In practice the Binding Segments MAY all be the same value. This example describes different BSID values for readability.
 
 - Weights of each egress SID list is also currently omitted.
 
@@ -307,141 +532,9 @@ Ingress SR Policy (Ingress only):
     SID List 8: [Adj-SID-AD, Adj-SID-DF, Adj-SID-FH]
 ~~~
 
-# Load-balancing
+# Local Optimization Example
 
-When a packet with the BSID assigned to the Junction Segment is received at its Junction Node,
-the node performs weighted non-equal cost flow-based forwarding across all egress SID lists associated with the Junction Segment.
-
-As per {{RFC9256}} Section 2.11, The fraction of the flows associated with a given segment list is w/Sw, where w is the weight of the segment
-list and Sw is the sum of the weights of the segment lists. To exclude forwarding via a specific egress interface
-while preserving the forwarding structure, a weight value of zero is assigned to the corresponding segment list.
-
-# Protection
-
-As described in {{I-D.draft-kompella-teas-mpte}}, as there are multiple egress interfaces (SID Lists), the loss of one interface link does not result in traffic drops,
-as long as one egress interface (SID List) remains although congestion may occur. For example, in Figure 1 Node C can
-tolerate the loss of up to 3 egress links and traffic will still forward (potentially with congestion).
-
-If a Junction Node experiences a failure of all egress links (including any protection for those links), it will initially
-blackhole traffic until upstream nodes are notified by the controller to remove the failed Junction node from the DAG.
-
-To reduce the risk of outages caused by single link failure, the controller MAY optimize DAG deployment by assigning
-Junction Segments only to nodes with more than one egress segment list. In other words, if a node in the DAG has only one egress interface,
-it functions solely as a transit node for an upstream Junction Segment and does not receive a Junction Segment itself.
-For example, in Figure 1, Node E is omitted from receiving a Junction Segment as it only has 1 egress link.
-
-Link protection from an upstream Junction node to its downstream Junction nodes can be achieved using existing TI-LFA {{RFC9855}} mechanisms,
-applied per egress SID List on each Junction Segment. Since the top SID(s) in each SID List identify the path to the
-next downstream Junction node, TI-LFA is applicable. Effectively, TI-LFA is used to protect traffic between Junction Segments along a path
-within the DAG and is not intended to protect traffic directed toward the DAG’s egress nodes or the entire DAG.
-
-Local computation for node protection on an upstream Junction node is not feasible, because it lacks visibility into the
-DAG beyond the immediate downstream Junction node as it only knows the next Junction Segment.
-A controller MAY be used to precompute backup SR Paths and signal these backup SID Lists to the upstream Junction segments.
-
-# Other considerations
-
-## Hierarchy
-
-The use of Junction Segments to achieve a DAG can be used in hierarchical organization and sharing of DAGs between end-to-end tunnels.
-
-For instance, in a multi-area or multi-instance topology, one or more shared DAGs may be created per area, connecting the border ingress node(s) and egress node(s).
-These DAGs can then be stitched together for use in an end-to-end SR tunnel.
-
-Figure 2 is an example of two independent SR Policy Tunnels from Headend A and Headend B terminating on Egress X.
-An instance of a DAG with MID 100 can be configured between area border routers (ABR)
-ABR-1 and the Egress X node. ABR-1 Junction Segment which ingresses the DAG has a Binding Segment attached, for
-example BSID-100. Therefore, the SID list on Headend A and Headend B SID lists would contain
-the SR Path (ex: Node-SID-ABR-1) to reach ABR 1 followed by BSID-100. The instruction set from each Headend to ABR 1
-could also be another instance of a DAG, either for independent use or shared.
-
-~~~
-          -------------------------------------------------------------
-          |                             |                             |
-          |                             |                             |
-     +-------+                          |             ---\            |
-     |       |--\     Path 1            |         ---/  | ---\        |
-     |Headend|   ----\                  |     ---/   -----\   --\     |
-     |   A   |         ----\         +-----+-/   ---/      ---\  --+------+
-     +-------+              ----\    |     |  --/   -------|   --  |      |
-          |                      --- | ABR |  -------------------  |Egress|
-          |                      --- |  1  |        |DAG-100       |  X   |
-     +-------+              ----/    +-----+ --\    |        ----- +------+
-     |       |        -----/            |  -\   ----\-------/     --  |
-     |Headend|   ----/                  |    --\     ---       --/    |
-     |   B   |--/     Path 2            |       -\   |      --/       |
-     +-------+                          |         --\    --/          |
-          |                             |            ---/             |
-          |                             |                             |
-          -------------------------------------------------------------
-                   Domain/Area 1                  Domain/Area 2
-
-                             Figure 2 : Reusable DAG 100
-~~~
-
-
-## Directly connected Junction nodes
-
-As described in the Operational section, all transit nodes in a DAG MAY be signaled with a Junction Segment.
-Alternatively depending on the topological graph and TE requirements, two Junction segments may be interconnected via an
-SR Path, with a SID list, where the SR Path itself may
-correspond to an ECMP or TE Path.
-
-## Broadcast links
-SR networks abstract broadcast links with the use point to point adjacency segments identifying each neighbor. Specifying a DAG which
-contains a broadcast link is feasible as an adjacency segment can be used to identify
-the neighboring Junction node on the broadcast link. The outgoing SID List of the Junction Segment simply contains the adjacency SID
-of the next-hop neighbor on the broadcast link.
-
-# Optimization
-
-## Local optimization
-
-Local optimization refers to updates applied to a single Junction node that can be performed without requiring
-coordinated updates across multiple nodes in the DAG. These operations are considered safe when they do not
-introduce forwarding loops or cause reachability interruptions within the DAG.
-
-Examples of local optimizations include:
-
-- Manipulating the weight distribution of the outgoing SID lists
-- Replacing an existing SID list with a more optimal one (e.g. using a new adjacency SID or updated SR path to the next Junction node).
-- Adding a new SID list toward an egress node that is not itself a Junction node.
-- Removing a SID list, provided that at least one other outgoing SID list remains active.
-- Adding a new SID list to a Junction node that connects to a new downstream sub-graph which is not yet connected to the DAG structure.
-
-While these operations are scoped to a single node, their correct application may still require awareness of the surrounding DAG structure
-to avoid introducing loops or reachability issues. For instance, the addition of a new SID list may require confirmation that the new sub-graph
-is not already part of the DAG, or that it connects loop free.
-
-Local optimizations may also be chained in sequence across multiple nodes. When each step maintains loop free and reachable properties,
-such a chain of updates is still considered local in nature.
-
-For example:
-
-- Cleaning up an upstream disconnected sub-graph following the removal of an upstream SID list (BSID is no longer used)
-
-It is important to note that local optimization differs from global optimization in that it does not require versioning or re-signaling of the entire DAG structure.
-
-Since a Junction Segment is realized via an SR Policy, the controller leverages existing protocol mechanisms to update a Junction segment forwarding
-instructions, as the Junction Segment itself is represented as a candidate path within the SR Policy. When updating an existing candidate path,
-the binding SID MUST NOT change, as doing so would cause traffic using that binding SID to drop until upstream consumers are updated.
-Such a change should instead be treated as a global optimization, not a local one.
-
-Multiple candidate paths could be used to support more comprehensive local optimizations. However, caution is required in how the MPTED version
-is encoded and how version increments are signaled, since candidate paths are signaled within the context of the SR Policy.
-
-If the same color value is reused and a new candidate path is deployed, the new candidate path will not be installed in the forwarding plane
-until the existing one is removed, as only one candidate path may be active per SR Policy. This operation may not be hitless, depending on hardware implementation.
-
-Alternatively, if a different color value is used, the new candidate path may be allowed to go active. However, it will still fail to do so since it should be using
-the same binding SID as the existing candidate path. This results in a collision, rendering the new path ineligible, and may also violate
-protocol constraints that prohibit such configurations.
-
-Therefore, it is RECOMMENDED that local optimization be performed by updating the SID list of the existing candidate path, rather than introducing new candidate paths.
-
-### Local optimization Example
-
-The following examples use the topology example specified in Figure 1 and Section 5.1.
+The following examples use the topology and Junction Segments from the worked example in Appendix A.
 
 Example 1 – Simple SID list update
 
@@ -453,40 +546,7 @@ Example 2 – Chained Local Optimization
 - The Junction Segment B is no longer used.
 - A delete is sent to remove Junction Segment B
 
-## Global optimization
-
-Global optimization of a DAG requires coordinated updates across all participating Junction Nodes.
-This process follows a make-before-break model, where a new version of the DAG is deployed alongside the existing one.
-The ingress SR Policy (or policies) is the last element to be updated.
-
-Since the Color field of an SR Policy indicates DAG membership, and is managed by the controller, global optimization
-with make-before-break considerations necessitates deploying new Junction segments. This, in turn, requires the instantiation
-of new SR Policies with unique Color values. These new SR Policies are deployed to all Junction Nodes participating in the
-updated DAG instance and MUST be associated with distinct Binding SID values from those of the existing instance.
-
-To minimize version churn and both color and label consumption, it is RECOMMENDED that controllers limit the number of
-concurrently deployed DAG instances for the same tunnel. Under normal conditions, only a single active
-DAG version should exist. During transitions, at most two versions (the current and the new one) should be present. Color and label values may be reused once globally released.
-
-The Binding SID associated with a DAG instance MUST remain constant during local optimizations, but MUST change during global optimizations to avoid the risk of routing loops. Therefore, in the example
-above, if a Junction Node is participating in DAG #1, version #1 continues to use one binding SID value and version #2 is using a distinct binding SID value on each Junction node.
-
-Once all Junction segments are deployed to all Junction nodes, the ingress node is updated with new SID lists referencing the Binding SIDs of the new Junction segments downstream.
-
-The Color field on ingress nodes is critical for traffic steering and therefore MUST remain constant during global optimizations. In contrast, Color values used on Junction Nodes
-MAY be reused or encoded to reflect DAG membership or instance mappings. Similarly, the binding SID on the ingress SR Policy also remains constant.
-
-The controller tracks the Color values and their corresponding usage for DAG ID and version. For example:
-
-- Color value 500 – DAG #1 – Version #1
-- Color value 501 – DAG #2 – Version #1
-- Color value 502 – DAG #1 – Version #2
-
-When performing global changes, controllers SHOULD ensure that all Junction Nodes are modified in a coordinated and consistent manner before activating the new DAG on the ingress.
-If the update process fails partially, the controller SHOULD roll back the new deployment and retain the existing
-stable DAG version and its Junction Segments to avoid inconsistencies in forwarding behavior.
-
-### Global Optimization Example
+# Global Optimization Example
 
 ~~~
 
@@ -584,108 +644,6 @@ DELETE Junction Segment X1:
   Color: 2000
   BSID: BSID-X1
 ~~~
-
-
-# Manageability Considerations
-
-## Control of Function through Configuration and Policy
-
-This document describes using the existing SR Policy construct with a color value representing the DAG MID and version.
-Since SR Policy color value is originally intended for ingress traffic
-steering on matched routers, a deployment MUST allocate a color range which will be used for MPTE tunnels.
-
-## Information and Data Models, e.g., MIB modules
-
-TODO
-
-## Liveness Detection and Monitoring
-
-Liveness detection for an MPTE SR deployment covers two independent scopes: the underlying IP link topology and the DAG tunnel itself.
-
-### Topology
-
-Seamless BFD (S-BFD) ({{RFC7880}}) is RECOMMENDED to quickly detect failures of individual IP links that comprise the topology over which
-the DAG is constructed. S-BFD sessions run on each link in the topology so that a node can
-quickly determine whether a directly connected link is functional and if not bring it operationally down, resulting in any tunnel-based S-BFD
-sessions which run across the link to also fail. The effect of the tunnel based S-BFD is discussed
-in the next section. The controller keeping in sync with the IGP topology would continue to react to changes in the topology and can
-determine whether corrective action is necessary.
-
-### DAG Tunnel
-
-Liveness detection of the DAG tunnel itself has more considerations than link-level detection as it must verify end-to-end forwarding
-behavior across all Junction Nodes and the processing of the Junction Segment which then forwards across the paths, based on weight and local packet hashing.
-
-S-BFD initiated from the headend of the ingress SR Policy to the DAG endpoint(s) can verify reachability to the first set of downstream
-Junction Nodes and a hashed path to the egress node. However, due to weighted ECMP behavior at each Junction Node, headend-originated S-BFD can be insufficient to exercise all
-possible forwarding paths that the DAG tunnel may take from the ingress node toward the egress node(s) unless it generates a non-deterministic amount of
-packets with sufficient entropy to exercise all possible egress forwarding. A single S-BFD probe from the
-headend will follow a hashed path through the DAG and cannot guarantee that every egress SID list on every Junction Node along the DAG
-is functional.
-
-It is RECOMMENDED each egress SID list of each Junction Segment runs its own S-BFD session to verify that the complete forwarding path,
-from that specific source node through the SID list to the terminating downstream node. A failure detected for a single egress SID list would
-mark that SID list inactive, removing it from the weighted ECMP set, leaving the remaining egress SID lists active. If there are no more
-active egress SID lists, then the Junction Segment itself would become inactive resulting in any upstream S-BFD sessions using this
-Junction segment to also go inactive. This per-Junction, per-SID-list approach ensures that every segment of the DAG is independently monitored,
-regardless of weight ECMP hashing and distribution.
-
-The egress node(s) will receive many S-BFD echo packets, one for each segment list on each Junction Node for each DAG.
-
-Upon failure of any segment list in the DAG, the controller SHOULD take corrective action if necessary, such as adjusting weights or
-performing other local or global optimizations as described in Section 10.
-
-## Verifying Correct Operation
-
-OAM Ping and Traceroute ({{RFC8287}}, {{RFC9259}}) are useful functions to verify and monitor operations.
-
-Similar to Liveness and Detection described in Section 11.3.2, a single OAM probe originated from the ingress is insufficient to
-verify correct operation of the DAG for all paths to the egress node(s). Due to the weighted forwarding behavior at each Junction
-Node, a headend-originated traceroute or ping will follow a single hashed path through the DAG and will not
-exercise every egress SID list on every Junction Node.
-
-To verify the complete DAG, the controller SHOULD collect and aggregate OAM operations on a per-Junction, per-segment-list basis
-to construct a holistic view of the DAG. Each test targets the downstream path encoded in that SID list, through to the next downstream
-Junction Node or the DAG egress node(s). This ensures that every forwarding path segment within the DAG is individually verified,
-independent of hash distribution at any upstream node. The controller MAY request this on-demand, or be provided the information periodically.
-
-The frequency of OAM verification is deployment specific.
-
-As these tests may run in parallel or sequentially and not during the same operational moment in time, the accuracy of the complete
-result set may contain a skew of measurements between the individual tests originated on each Junction node. It's RECOMMENDED to perform multiple test samples.
-
-An example procedure is as follows:
-
-1. The controller enumerates all Junction Nodes in the DAG and their associated egress SID lists.
-
-2. For each Junction Node, the controller triggers an OAM ping or traceroute for each egress SID list. The probe packet is sourced
-from the Junction Node and follows the SID list toward the downstream Junction Node or egress node. Traceroute operations collect per-hop
-forwarding state, while ping operations verify end-to-end reachability of the segment list path.
-
-3. Each Junction Node reports the OAM results back to the controller. The results may include the success or failure status,
-round-trip delay, and for traceroute, the per-hop path information.
-
-4. The controller aggregates all per-Junction, per-segment-list OAM results to construct a complete operational view of the DAG.
-This aggregated view allows the controller to verify and present to an operator that every forwarding path within the DAG is
-functioning correctly and what measurements are present.
-
-## Requirements on Other Protocols and Functional Components
-
-There are currently no new requirements on other protocols or functional components.
-
-## Impact on Network Operation
-
-TODO
-
-# Security Considerations
-
-TODO
-
-# IANA Considerations
-
-None at this time
-
---- back
 
 # Acknowledgments
 {:numbered="false"}
