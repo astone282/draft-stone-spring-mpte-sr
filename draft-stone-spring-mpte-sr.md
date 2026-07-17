@@ -19,8 +19,8 @@ author:
     email: andrew.stone@nokia.com
  -
     fullname: Vishnu Pavan Beeram
-    organization: Juniper Networks
-    email: vbeeram@juniper.net
+    organization: HPE
+    email: vishnupavan.ietf@gmail.com
  -
     fullname: Nick Buraglio
     organization: Energy Sciences Network
@@ -29,6 +29,14 @@ author:
     fullname: Shaofu Peng
     organization: ZTE Corporation
     email: peng.shaofu@zte.com.cn
+ -
+    fullname: Zafar Ali
+    organization: Cisco Systems, Inc.
+    email: zali@cisco.com
+ -
+    fullname: Siva Sivabalan
+    organization: Ciena Corporation
+    email: ssivabal@ciena.com
 
 normative:
   I-D.draft-kompella-teas-mpte:
