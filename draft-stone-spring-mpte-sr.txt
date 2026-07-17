@@ -5,12 +5,16 @@
 Source Packet Routing in Networking                             A. Stone
 Internet-Draft                                                     Nokia
 Intended status: Informational                              V. P. Beeram
-Expires: 31 December 2026                               Juniper Networks
+Expires: 18 January 2027                                             HPE
                                                              N. Buraglio
                                                  Energy Sciences Network
                                                                  S. Peng
                                                          ZTE Corporation
-                                                            29 June 2026
+                                                                  Z. Ali
+                                                     Cisco Systems, Inc.
+                                                            S. Sivabalan
+                                                       Ciena Corporation
+                                                            17 July 2026
 
 
            Multipath Traffic Engineering for Segment Routing
@@ -47,7 +51,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 31 December 2026.
+   This Internet-Draft will expire on 18 January 2027.
 
 Copyright Notice
 
@@ -699,9 +703,9 @@ Table of Contents
    [I-D.draft-kompella-teas-mpte]
               Kompella, K., Jalil, L., Khaddam, M., and A. Smith,
               "Multipath Traffic Engineering", Work in Progress,
-              Internet-Draft, draft-kompella-teas-mpte-02, 2 March 2026,
+              Internet-Draft, draft-kompella-teas-mpte-03, 6 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-kompella-
-              teas-mpte-02>.
+              teas-mpte-03>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -1020,8 +1024,8 @@ Authors' Addresses
 
 
    Vishnu Pavan Beeram
-   Juniper Networks
-   Email: vbeeram@juniper.net
+   HPE
+   Email: vishnupavan.ietf@gmail.com
 
 
    Nick Buraglio
@@ -1032,3 +1036,13 @@ Authors' Addresses
    Shaofu Peng
    ZTE Corporation
    Email: peng.shaofu@zte.com.cn
+
+
+   Zafar Ali
+   Cisco Systems, Inc.
+   Email: zali@cisco.com
+
+
+   Siva Sivabalan
+   Ciena Corporation
+   Email: ssivabal@ciena.com
