@@ -37,6 +37,10 @@ author:
     fullname: Siva Sivabalan
     organization: Ciena Corporation
     email: ssivabal@ciena.com
+ -
+    fullname: Jie Dong
+    organization: Huawei Technologies
+    email: jie.dong@huawei.com
 
 normative:
   I-D.draft-kompella-teas-mpte:
