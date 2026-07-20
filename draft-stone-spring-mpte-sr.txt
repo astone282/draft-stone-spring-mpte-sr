@@ -5,7 +5,7 @@
 Source Packet Routing in Networking                             A. Stone
 Internet-Draft                                                     Nokia
 Intended status: Informational                              V. P. Beeram
-Expires: 18 January 2027                                             HPE
+Expires: 21 January 2027                                             HPE
                                                              N. Buraglio
                                                  Energy Sciences Network
                                                                  S. Peng
@@ -14,7 +14,9 @@ Expires: 18 January 2027                                             HPE
                                                      Cisco Systems, Inc.
                                                             S. Sivabalan
                                                        Ciena Corporation
-                                                            17 July 2026
+                                                                 J. Dong
+                                                     Huawei Technologies
+                                                            20 July 2026
 
 
            Multipath Traffic Engineering for Segment Routing
@@ -51,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 18 January 2027.
+   This Internet-Draft will expire on 21 January 2027.
 
 Copyright Notice
 
@@ -1046,3 +1048,8 @@ Authors' Addresses
    Siva Sivabalan
    Ciena Corporation
    Email: ssivabal@ciena.com
+
+
+   Jie Dong
+   Huawei Technologies
+   Email: jie.dong@huawei.com
